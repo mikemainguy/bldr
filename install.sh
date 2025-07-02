@@ -316,6 +316,18 @@ ask_for_configuration() {
     echo "  This will guide you through setting up all required variables"
     echo "  including GitHub tokens, server details, and deployment settings."
     echo ""
+    
+    # Check if we're running in a pipe (curl | bash) or if stdin is not available
+    if [[ ! -t 0 ]] || [[ -z "$PS1" ]]; then
+        # Running in pipe or non-interactive mode
+        echo ""
+        warn "⚠️  Interactive input not available (running via curl | bash)"
+        echo "   The configuration script will be available for you to run manually."
+        echo ""
+        show_manual_config_instructions
+        return
+    fi
+    
     read -p "Run interactive configuration now? (Y/n): " run_config
     
     if [[ $run_config =~ ^[Nn]$ ]]; then
@@ -358,16 +370,19 @@ show_configuration_complete() {
 # Show manual configuration instructions
 show_manual_config_instructions() {
     echo ""
-    echo -e "${YELLOW}📝 Manual Configuration Required${NC}"
-    echo "================================="
+    echo -e "${YELLOW}📝 Configuration Required${NC}"
+    echo "============================="
     echo ""
-    info "To configure your environment manually:"
+    info "To configure your environment:"
     echo ""
-    echo "  1. Edit the .env file with your configuration:"
+    echo "  🎯 RECOMMENDED: Run the interactive configuration script:"
+    echo "     ./scripts/configure.sh"
+    echo ""
+    echo "  📝 OR manually edit the .env file:"
     echo "     nano .env"
     echo ""
-    echo "  2. Or run the interactive configuration script later:"
-    echo "     ./scripts/configure.sh"
+    echo "  The interactive script will guide you through all settings"
+    echo "  with validation and helpful tips."
     echo ""
     show_deployment_instructions
 }
