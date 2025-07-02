@@ -61,10 +61,10 @@ EOF
 # OS detection
 check_os() {
     case "$(uname -s)" in
-        Linux*)   OS=Linux;;
-        Darwin*)  OS=Mac;;
-        MINGW*|MSYS*|CYGWIN*) OS=WindowsGitBash;;
-        *)        OS="UNKNOWN";;
+        Linux*)   export OS=Linux;;
+        Darwin*)  export OS=Mac;;
+        MINGW*|MSYS*|CYGWIN*) export OS=WindowsGitBash;;
+        *)        export OS="UNKNOWN";;
     esac
 
     if [[ "$OS" == "Linux" ]]; then
@@ -98,6 +98,7 @@ check_prerequisites() {
 
 # Install curl based on OS
 install_curl() {
+    log "Installing curl for OS: $OS"
     if [[ "$OS" == "Linux" ]]; then
         # Detect Linux distribution
         if command -v apt-get &> /dev/null; then
@@ -141,6 +142,7 @@ install_curl() {
 
 # Install git based on OS
 install_git() {
+    log "Installing git for OS: $OS"
     if [[ "$OS" == "Linux" ]]; then
         # Detect Linux distribution
         if command -v apt-get &> /dev/null; then
