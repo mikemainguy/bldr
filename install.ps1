@@ -78,10 +78,20 @@ For more information, visit: https://github.com/mikemainguy/bldr
 "@
 }
 
+# Get version from VERSION file
+function Get-Version {
+    if (Test-Path "VERSION") {
+        return (Get-Content "VERSION" -Raw).Trim()
+    } else {
+        return "1.0.0"
+    }
+}
+
 # Show version
 function Show-Version {
-    Write-Host "GitHub Actions Runner Installer v1.0.0"
-    Write-Host "Copyright (c) 2024 Your Organization"
+    $version = Get-Version
+    Write-Host "GitHub Actions Runner Installer v$version"
+    Write-Host "Copyright (c) 2024 Michael Mainguy"
     Write-Host "License: MIT"
 }
 

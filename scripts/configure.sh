@@ -32,11 +32,12 @@ log() {
 
 # Banner
 show_banner() {
+    local version=$(get_version)
     echo -e "${CYAN}"
-    cat << 'EOF'
+    cat << EOF
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
-║    ⚙️  GitHub Actions Runner Configuration                   ║
+║    ⚙️  GitHub Actions Runner Configuration v$version         ║
 ║    Interactive Environment Setup                             ║
 ║                                                              ║
 ║    This script will guide you through configuring           ║
@@ -537,9 +538,21 @@ show_help() {
     echo "For more information, visit: https://github.com/mikemainguy/bldr"
 }
 
+# Get version from VERSION file
+get_version() {
+    if [[ -f "../VERSION" ]]; then
+        cat ../VERSION
+    elif [[ -f "VERSION" ]]; then
+        cat VERSION
+    else
+        echo "1.0.0"
+    fi
+}
+
 # Show version
 show_version() {
-    echo "GitHub Actions Runner Configuration Script v1.0.0"
+    local version=$(get_version)
+    echo "GitHub Actions Runner Configuration Script v$version"
     echo "Copyright (c) 2024 Michael Mainguy"
     echo "License: MIT"
 }

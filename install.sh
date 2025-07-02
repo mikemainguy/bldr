@@ -42,11 +42,12 @@ info() {
 
 # Banner
 show_banner() {
+    local version=$(get_version)
     echo -e "${CYAN}"
-    cat << 'EOF'
+    cat << EOF
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
-║    🚀 GitHub Actions Runner Installer                        ║
+║    🚀 GitHub Actions Runner Installer v$version              ║
 ║    Ubuntu Linux, macOS, and GitBash (Windows)                ║
 ║                                                              ║
 ║    This script will set up a complete GitHub Actions        ║
@@ -449,9 +450,19 @@ show_help() {
     echo "For more information, visit: https://github.com/mikemainguy/bldr"
 }
 
+# Get version from VERSION file
+get_version() {
+    if [[ -f "VERSION" ]]; then
+        cat VERSION
+    else
+        echo "1.0.0"
+    fi
+}
+
 # Show version
 show_version() {
-    echo "GitHub Actions Runner Installer v1.0.0"
+    local version=$(get_version)
+    echo "GitHub Actions Runner Installer v$version"
     echo "Copyright (c) 2024 Michael Mainguy"
     echo "License: MIT"
 }
@@ -481,7 +492,9 @@ parse_args() {
 
 # Main installation function
 main() {
+    local version=$(get_version)
     show_banner
+    log "Starting installation of GitHub Actions Runner v$version"
     parse_args "$@"
     check_os
     check_prerequisites
