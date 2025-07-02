@@ -83,15 +83,103 @@ check_os() {
 check_prerequisites() {
     log "Checking prerequisites..."
     if ! command -v curl &> /dev/null; then
-        error "curl is required but not installed. Please install curl first."
+        warn "curl not found. Attempting to install curl..."
+        install_curl
     fi
     if ! command -v git &> /dev/null; then
-        error "git is required but not installed. Please install git first."
+        warn "git not found. Attempting to install git..."
+        install_git
     fi
     if ! command -v unzip &> /dev/null; then
         warn "unzip not found. If git clone fails, zip fallback may not work."
     fi
     log "Prerequisites check passed."
+}
+
+# Install curl based on OS
+install_curl() {
+    if [[ "$OS" == "Linux" ]]; then
+        # Detect Linux distribution
+        if command -v apt-get &> /dev/null; then
+            log "Installing curl using apt-get..."
+            sudo apt-get update && sudo apt-get install -y curl
+        elif command -v yum &> /dev/null; then
+            log "Installing curl using yum..."
+            sudo yum install -y curl
+        elif command -v dnf &> /dev/null; then
+            log "Installing curl using dnf..."
+            sudo dnf install -y curl
+        elif command -v pacman &> /dev/null; then
+            log "Installing curl using pacman..."
+            sudo pacman -S --noconfirm curl
+        elif command -v zypper &> /dev/null; then
+            log "Installing curl using zypper..."
+            sudo zypper install -y curl
+        else
+            error "Could not detect package manager. Please install curl manually."
+        fi
+    elif [[ "$OS" == "Mac" ]]; then
+        log "Installing curl using Homebrew..."
+        if command -v brew &> /dev/null; then
+            brew install curl
+        else
+            error "Homebrew not found. Please install Homebrew first or install curl manually."
+        fi
+    elif [[ "$OS" == "WindowsGitBash" ]]; then
+        error "curl not found in GitBash. Please install curl manually or use wget instead."
+    else
+        error "Could not install curl automatically. Please install curl manually."
+    fi
+    
+    # Verify curl installation
+    if command -v curl &> /dev/null; then
+        log "curl installed successfully: $(curl --version | head -n1)"
+    else
+        error "curl installation failed. Please install curl manually."
+    fi
+}
+
+# Install git based on OS
+install_git() {
+    if [[ "$OS" == "Linux" ]]; then
+        # Detect Linux distribution
+        if command -v apt-get &> /dev/null; then
+            log "Installing git using apt-get..."
+            sudo apt-get update && sudo apt-get install -y git
+        elif command -v yum &> /dev/null; then
+            log "Installing git using yum..."
+            sudo yum install -y git
+        elif command -v dnf &> /dev/null; then
+            log "Installing git using dnf..."
+            sudo dnf install -y git
+        elif command -v pacman &> /dev/null; then
+            log "Installing git using pacman..."
+            sudo pacman -S --noconfirm git
+        elif command -v zypper &> /dev/null; then
+            log "Installing git using zypper..."
+            sudo zypper install -y git
+        else
+            error "Could not detect package manager. Please install git manually."
+        fi
+    elif [[ "$OS" == "Mac" ]]; then
+        log "Installing git using Homebrew..."
+        if command -v brew &> /dev/null; then
+            brew install git
+        else
+            error "Homebrew not found. Please install Homebrew first or install git manually."
+        fi
+    elif [[ "$OS" == "WindowsGitBash" ]]; then
+        error "Git not found in GitBash. Please install Git for Windows from https://git-scm.com/download/win"
+    else
+        error "Could not install git automatically. Please install git manually."
+    fi
+    
+    # Verify git installation
+    if command -v git &> /dev/null; then
+        log "Git installed successfully: $(git --version)"
+    else
+        error "Git installation failed. Please install git manually."
+    fi
 }
 
 # Get installation directory
