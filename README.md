@@ -44,24 +44,24 @@ This project provides a complete setup for running GitHub Actions self-hosted ru
 
 #### For Windows Users (GitBash):
 ```bash
-curl -sSL https://raw.githubusercontent.com/your-repo/bldr/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/mikemainguy/bldr/main/install.sh | bash
 ```
 
 #### For Windows Users (PowerShell):
 ```powershell
-irm https://raw.githubusercontent.com/your-repo/bldr/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/mikemainguy/bldr/main/install.ps1 | iex
 ```
 
 #### For Linux/macOS Users:
 ```bash
-curl -sSL https://raw.githubusercontent.com/your-repo/bldr/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/mikemainguy/bldr/main/install.sh | bash
 ```
 
 ### Option 2: Manual Installation
 
 1. **Clone this repository**:
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/mikemainguy/bldr.git
    cd bldr
    ```
 
@@ -134,13 +134,13 @@ A comprehensive installation script for Windows users with GitBash, Linux, and m
 **Usage:**
 ```bash
 # Install in default location (~/github-runner)
-curl -sSL https://raw.githubusercontent.com/your-repo/bldr/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/mikemainguy/bldr/main/install.sh | bash
 
 # Install in custom location
-curl -sSL https://raw.githubusercontent.com/your-repo/bldr/main/install.sh | bash -s /opt/github-runner
+curl -sSL https://raw.githubusercontent.com/mikemainguy/bldr/main/install.sh | bash -s /opt/github-runner
 
 # Show help
-curl -sSL https://raw.githubusercontent.com/your-repo/bldr/main/install.sh | bash -s -- --help
+curl -sSL https://raw.githubusercontent.com/mikemainguy/bldr/main/install.sh | bash -s -- --help
 ```
 
 ### PowerShell Script (`install.ps1`)
@@ -155,10 +155,10 @@ A PowerShell installation script for Windows users who prefer PowerShell.
 **Usage:**
 ```powershell
 # Install in default location
-irm https://raw.githubusercontent.com/your-repo/bldr/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/mikemainguy/bldr/main/install.ps1 | iex
 
 # Install in custom location
-irm https://raw.githubusercontent.com/your-repo/bldr/main/install.ps1 | iex -ArgumentList "C:\github-runner"
+irm https://raw.githubusercontent.com/mikemainguy/bldr/main/install.ps1 | iex -ArgumentList "C:\github-runner"
 
 # Show help
 .\install.ps1 -Help

@@ -1,5 +1,5 @@
 # GitHub Actions Runner Installer for PowerShell
-# This script can be installed and run with: irm https://raw.githubusercontent.com/your-repo/bldr/main/install.ps1 | iex
+# This script can be installed and run with: irm https://raw.githubusercontent.com/mikemainguy/bldr/main/install.ps1 | iex
 
 param(
     [string]$InstallDir = "$env:USERPROFILE\github-runner",
@@ -72,9 +72,9 @@ Arguments:
 Examples:
   .\install.ps1                           # Install in ~/github-runner
   .\install.ps1 -InstallDir C:\github-runner  # Install in C:\github-runner
-  irm https://raw.githubusercontent.com/your-repo/bldr/main/install.ps1 | iex
+  irm https://raw.githubusercontent.com/mikemainguy/bldr/main/install.ps1 | iex
 
-For more information, visit: https://github.com/your-repo/bldr
+For more information, visit: https://github.com/mikemainguy/bldr
 "@
 }
 
@@ -129,7 +129,7 @@ function Get-Repository {
     Write-Log "Downloading GitHub Actions runner setup..."
     
     # Repository URL (update this with your actual repository)
-    $RepoUrl = "https://github.com/your-username/bldr"
+    $RepoUrl = "https://github.com/mikemainguy/bldr"
     
     # Check if directory already exists
     if (Test-Path "bldr") {

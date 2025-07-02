@@ -109,7 +109,7 @@ sudo npm install -g npm@latest yarn pm2
 ### Clone the Repository
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/mikemainguy/bldr.git
 cd bldr
 ```
 
@@ -285,7 +285,7 @@ git init
 git add .
 git commit -m "Initial commit"
 git branch -M main
-git remote add origin https://github.com/your-username/your-repo.git
+git remote add origin https://github.com/mikemainguy/bldr.git
 git push -u origin main
 ```
 

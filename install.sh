@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # GitHub Actions Runner Installer for GitBash
-# This script can be installed and run with: curl -sSL https://raw.githubusercontent.com/your-repo/bldr/main/install.sh | bash
+# This script can be installed and run with: curl -sSL https://raw.githubusercontent.com/mikemainguy/bldr/main/install.sh | bash
 
 set -e
 
@@ -106,7 +106,7 @@ download_repository() {
     log "Downloading GitHub Actions runner setup..."
     
     # Repository URL (update this with your actual repository)
-    REPO_URL="https://github.com/your-username/bldr"
+    REPO_URL="https://github.com/mikemainguy/bldr"
     
     # Check if directory already exists
     if [[ -d "bldr" ]]; then
@@ -309,9 +309,9 @@ show_help() {
     echo "Examples:"
     echo "  $0                           # Install in ~/github-runner"
     echo "  $0 /opt/github-runner        # Install in /opt/github-runner"
-    echo "  curl -sSL https://raw.githubusercontent.com/your-repo/bldr/main/install.sh | bash"
+    echo "  curl -sSL https://raw.githubusercontent.com/mikemainguy/bldr/main/install.sh | bash"
     echo ""
-    echo "For more information, visit: https://github.com/your-repo/bldr"
+    echo "For more information, visit: https://github.com/mikemainguy/bldr"
 }
 
 # Show version
