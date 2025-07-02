@@ -306,23 +306,84 @@ make_scripts_executable() {
     fi
 }
 
-# Show next steps
-show_next_steps() {
+# Ask user if they want to configure now
+ask_for_configuration() {
+    echo ""
+    echo -e "${CYAN}⚙️  Configuration Setup${NC}"
+    echo "=========================="
+    echo ""
+    info "Would you like to configure your environment now?"
+    echo "  This will guide you through setting up all required variables"
+    echo "  including GitHub tokens, server details, and deployment settings."
+    echo ""
+    read -p "Run interactive configuration now? (Y/n): " run_config
+    
+    if [[ $run_config =~ ^[Nn]$ ]]; then
+        show_manual_config_instructions
+    else
+        run_configuration_script
+    fi
+}
+
+# Run the configuration script
+run_configuration_script() {
+    echo ""
+    log "Starting interactive configuration..."
+    echo ""
+    
+    if [[ -f "scripts/configure.sh" ]]; then
+        ./scripts/configure.sh
+        if [[ $? -eq 0 ]]; then
+            show_configuration_complete
+        else
+            warn "Configuration was interrupted or failed"
+            show_manual_config_instructions
+        fi
+    else
+        error "Configuration script not found"
+        show_manual_config_instructions
+    fi
+}
+
+# Show configuration complete message
+show_configuration_complete() {
+    echo ""
+    echo -e "${GREEN}✅ Configuration Complete!${NC}"
+    echo ""
+    info "Your environment has been configured successfully!"
+    echo ""
+    show_deployment_instructions
+}
+
+# Show manual configuration instructions
+show_manual_config_instructions() {
+    echo ""
+    echo -e "${YELLOW}📝 Manual Configuration Required${NC}"
+    echo "================================="
+    echo ""
+    info "To configure your environment manually:"
+    echo ""
+    echo "  1. Edit the .env file with your configuration:"
+    echo "     nano .env"
+    echo ""
+    echo "  2. Or run the interactive configuration script later:"
+    echo "     ./scripts/configure.sh"
+    echo ""
+    show_deployment_instructions
+}
+
+# Show deployment instructions
+show_deployment_instructions() {
     echo -e "${CYAN}"
     cat << 'EOF'
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
-║    ✅ Installation Complete!                                 ║
+║    🚀 Next Steps for Deployment                              ║
 ║                                                              ║
-║    Next Steps:                                               ║
-║                                                              ║
-║    1. Edit the .env file with your configuration:            ║
-║       nano .env                                              ║
-║                                                              ║
-║    2. Transfer files to your Ubuntu server:                 ║
+║    1. Transfer files to your Ubuntu server:                 ║
 ║       scp -r . user@your-server:/path/to/installation       ║
 ║                                                              ║
-║    3. SSH to your Ubuntu server and run:                    ║
+║    2. SSH to your Ubuntu server and run:                    ║
 ║       cd /path/to/installation                              ║
 ║       ./scripts/setup.sh                                     ║
 ║       sudo reboot                                            ║
@@ -347,7 +408,11 @@ EOF
     echo "  🔧 scripts/                - Setup and management scripts"
     echo "  📋 workflows/              - GitHub Actions workflow templates"
     echo ""
-    warn "⚠️  IMPORTANT: Edit .env file with your actual configuration before proceeding!"
+}
+
+# Show next steps (legacy function - now just calls ask_for_configuration)
+show_next_steps() {
+    ask_for_configuration
 }
 
 # Show help
