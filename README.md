@@ -65,7 +65,12 @@ curl -sSL https://raw.githubusercontent.com/mikemainguy/bldr/main/install.sh | b
    cd bldr
    ```
 
-2. **Configure environment**:
+2. **Configure environment (Interactive)**:
+   ```bash
+   ./scripts/configure.sh  # Interactive configuration wizard
+   ```
+   
+   **Or manually**:
    ```bash
    cp env.example .env
    # Edit .env with your specific values
@@ -96,6 +101,7 @@ bldr/
 ├── install.ps1              # PowerShell installation script
 ├── docker-compose.yml       # Docker services configuration
 ├── scripts/                 # Setup and management scripts
+│   ├── configure.sh        # Interactive configuration wizard
 │   ├── setup.sh            # Initial setup script
 │   ├── register-runner.sh  # GitHub runner registration
 │   ├── start-runner.sh     # Start runner service
@@ -165,6 +171,21 @@ irm https://raw.githubusercontent.com/mikemainguy/bldr/main/install.ps1 | iex -A
 ```
 
 ## Configuration
+
+### Interactive Configuration (Recommended)
+
+The easiest way to configure your environment is using the interactive configuration script:
+
+```bash
+./scripts/configure.sh
+```
+
+This script will:
+- Guide you through all required settings
+- Validate input formats (GitHub tokens, emails, domains, etc.)
+- Provide helpful tips and examples
+- Generate a properly formatted `.env` file
+- Show a summary of your configuration before saving
 
 ### Environment Variables
 
