@@ -420,7 +420,7 @@ ask_for_configuration() {
     echo ""
     
     # Check if we're running in a pipe (curl | bash) or if stdin is not available
-    if [[ ! -t 0 ]] || [[ -z "$PS1" ]]; then
+    if [[ ! -t 0 ]]; then
         # Running in pipe or non-interactive mode
         echo ""
         warn "⚠️  Interactive input not available (running via curl | bash)"
@@ -429,6 +429,9 @@ ask_for_configuration() {
         show_manual_config_instructions
         return
     fi
+    
+    # Debug: Show terminal status
+    log "Terminal check: stdin is a terminal (interactive mode available)"
     
     read -p "Run interactive configuration now? (Y/n): " run_config
     
