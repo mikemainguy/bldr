@@ -148,12 +148,50 @@ configure_github() {
     echo -e "${CYAN}🔧 GitHub Configuration${NC}"
     echo "=================================="
     
-    prompt_with_validation \
-        "Enter your GitHub Personal Access Token" \
-        "GITHUB_TOKEN" \
-        "validate_github_token" \
-        "" \
-        "Create a token at https://github.com/settings/tokens with 'repo' and 'admin:org' scopes"
+    # Offer automatic token generation
+    echo ""
+    info "GitHub Personal Access Token is required for the runner to authenticate."
+    echo ""
+    read -p "Would you like to generate a token automatically? (Y/n): " auto_token
+    
+    if [[ ! $auto_token =~ ^[Nn]$ ]]; then
+        # Try automatic token generation
+        log "Attempting automatic token generation..."
+        echo ""
+        
+        if [[ -f "scripts/github-token.sh" ]]; then
+            local generated_token
+            generated_token=$(./scripts/github-token.sh --name "bldr-runner-$(hostname)" --scopes "repo,admin:org,workflow" --expiry "90d")
+            
+            if [[ $? -eq 0 ]] && [[ -n "$generated_token" ]]; then
+                GITHUB_TOKEN="$generated_token"
+                log "✅ Token generated automatically"
+            else
+                warn "Automatic token generation failed, please enter manually"
+                prompt_with_validation \
+                    "Enter your GitHub Personal Access Token" \
+                    "GITHUB_TOKEN" \
+                    "validate_github_token" \
+                    "" \
+                    "Create a token at https://github.com/settings/tokens with 'repo' and 'admin:org' scopes"
+            fi
+        else
+            warn "Token generation script not found, please enter manually"
+            prompt_with_validation \
+                "Enter your GitHub Personal Access Token" \
+                "GITHUB_TOKEN" \
+                "validate_github_token" \
+                "" \
+                "Create a token at https://github.com/settings/tokens with 'repo' and 'admin:org' scopes"
+        fi
+    else
+        prompt_with_validation \
+            "Enter your GitHub Personal Access Token" \
+            "GITHUB_TOKEN" \
+            "validate_github_token" \
+            "" \
+            "Create a token at https://github.com/settings/tokens with 'repo' and 'admin:org' scopes"
+    fi
     
     prompt_with_validation \
         "Enter your GitHub repository (format: owner/repo)" \

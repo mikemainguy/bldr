@@ -358,19 +358,33 @@ setup_shell_integration() {
     local scripts_dir="$HOME/.local/bin"
     mkdir -p "$scripts_dir"
     
-    # Create a symlink to the configure script
+    # Create symlinks to the scripts
     local configure_script="$INSTALL_DIR/bldr/scripts/configure.sh"
-    local symlink_path="$scripts_dir/bldr-configure"
+    local token_script="$INSTALL_DIR/bldr/scripts/github-token.sh"
+    local configure_symlink="$scripts_dir/bldr-configure"
+    local token_symlink="$scripts_dir/bldr-token"
     
     if [[ -f "$configure_script" ]]; then
         # Remove existing symlink if it exists
-        if [[ -L "$symlink_path" ]]; then
-            rm "$symlink_path"
+        if [[ -L "$configure_symlink" ]]; then
+            rm "$configure_symlink"
         fi
         
         # Create new symlink
-        ln -sf "$configure_script" "$symlink_path"
-        log "Created symlink: $symlink_path -> $configure_script"
+        ln -sf "$configure_script" "$configure_symlink"
+        log "Created symlink: $configure_symlink -> $configure_script"
+    fi
+    
+    if [[ -f "$token_script" ]]; then
+        # Remove existing symlink if it exists
+        if [[ -L "$token_symlink" ]]; then
+            rm "$token_symlink"
+        fi
+        
+        # Create new symlink
+        ln -sf "$token_script" "$token_symlink"
+        log "Created symlink: $token_symlink -> $token_script"
+    fi
         
         # Add to PATH if not already there
         local path_export=""
@@ -399,7 +413,9 @@ setup_shell_integration() {
         export PATH="$HOME/.local/bin:$PATH"
         
         info "✅ Shell integration complete!"
-        echo "  You can now run 'bldr-configure' from anywhere to configure your environment"
+        echo "  You can now run these commands from anywhere:"
+        echo "    bldr-configure  - Configure your environment"
+        echo "    bldr-token      - Generate GitHub Personal Access Tokens"
         echo "  Changes will take effect in new shell sessions"
         
     else
