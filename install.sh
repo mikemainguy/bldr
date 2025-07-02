@@ -8,7 +8,7 @@
 # Usage (Windows GitBash):
 #   curl -sSL https://raw.githubusercontent.com/mikemainguy/bldr/main/install.sh | bash
 #
-# This script will set up the bldr repo for you in ~/github-runner (or a custom directory).
+# This script will set up the bldr repo for you in ~/.bldr (or a custom directory).
 #
 # For PowerShell on Windows, use the install.ps1 script instead.
 
@@ -189,7 +189,7 @@ get_install_dir() {
     if [[ -n "$1" ]]; then
         INSTALL_DIR="$1"
     else
-        INSTALL_DIR="$HOME/github-runner"
+        INSTALL_DIR="$HOME/.bldr"
     fi
     mkdir -p "$INSTALL_DIR"
     cd "$INSTALL_DIR"
@@ -439,11 +439,11 @@ show_help() {
     echo "  -v, --version  Show version information"
     echo ""
     echo "Arguments:"
-    echo "  INSTALL_DIR    Installation directory (default: ~/github-runner)"
+    echo "  INSTALL_DIR    Installation directory (default: ~/.bldr)"
     echo ""
     echo "Examples:"
-    echo "  $0                           # Install in ~/github-runner"
-    echo "  $0 /opt/github-runner        # Install in /opt/github-runner"
+    echo "  $0                           # Install in ~/.bldr"
+    echo "  $0 /opt/bldr                 # Install in /opt/bldr"
     echo "  curl -sSL https://raw.githubusercontent.com/mikemainguy/bldr/main/install.sh | bash"
     echo ""
     echo "For more information, visit: https://github.com/mikemainguy/bldr"

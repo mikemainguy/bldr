@@ -139,11 +139,11 @@ A comprehensive installation script for Windows users with GitBash, Linux, and m
 
 **Usage:**
 ```bash
-# Install in default location (~/github-runner)
+# Install in default location (~/.bldr)
 curl -sSL https://raw.githubusercontent.com/mikemainguy/bldr/main/install.sh | bash
 
 # Install in custom location
-curl -sSL https://raw.githubusercontent.com/mikemainguy/bldr/main/install.sh | bash -s /opt/github-runner
+curl -sSL https://raw.githubusercontent.com/mikemainguy/bldr/main/install.sh | bash -s /opt/bldr
 
 # Show help
 curl -sSL https://raw.githubusercontent.com/mikemainguy/bldr/main/install.sh | bash -s -- --help

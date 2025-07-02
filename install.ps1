@@ -2,7 +2,7 @@
 # This script can be installed and run with: irm https://raw.githubusercontent.com/mikemainguy/bldr/main/install.ps1 | iex
 
 param(
-    [string]$InstallDir = "$env:USERPROFILE\github-runner",
+    [string]$InstallDir = "$env:USERPROFILE\.bldr",
     [switch]$Help,
     [switch]$Version
 )
@@ -67,11 +67,11 @@ Options:
   -Version           Show version information
 
 Arguments:
-  INSTALL_DIR        Installation directory (default: ~/github-runner)
+  INSTALL_DIR        Installation directory (default: ~/.bldr)
 
 Examples:
-  .\install.ps1                           # Install in ~/github-runner
-  .\install.ps1 -InstallDir C:\github-runner  # Install in C:\github-runner
+  .\install.ps1                           # Install in ~/.bldr
+.\install.ps1 -InstallDir C:\bldr       # Install in C:\bldr
   irm https://raw.githubusercontent.com/mikemainguy/bldr/main/install.ps1 | iex
 
 For more information, visit: https://github.com/mikemainguy/bldr
@@ -111,7 +111,7 @@ function Set-InstallDirectory {
     param([string]$Path)
     
     if (-not $Path) {
-        $Path = "$env:USERPROFILE\github-runner"
+        $Path = "$env:USERPROFILE\.bldr"
     }
     
     # Create installation directory
