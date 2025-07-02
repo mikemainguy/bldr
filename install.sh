@@ -1,7 +1,16 @@
 #!/bin/bash
 
-# GitHub Actions Runner Installer for GitBash
-# This script can be installed and run with: curl -sSL https://raw.githubusercontent.com/mikemainguy/bldr/main/install.sh | bash
+# GitHub Actions Runner Universal Installer
+#
+# Usage (Linux/macOS):
+#   curl -sSL https://raw.githubusercontent.com/mikemainguy/bldr/main/install.sh | bash
+#
+# Usage (Windows GitBash):
+#   curl -sSL https://raw.githubusercontent.com/mikemainguy/bldr/main/install.sh | bash
+#
+# This script will set up the bldr repo for you in ~/github-runner (or a custom directory).
+#
+# For PowerShell on Windows, use the install.ps1 script instead.
 
 set -e
 
@@ -38,7 +47,7 @@ show_banner() {
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
 ║    🚀 GitHub Actions Runner Installer                        ║
-║    Ubuntu Linux + Node.js Autodeployment                     ║
+║    Ubuntu Linux, macOS, and GitBash (Windows)                ║
 ║                                                              ║
 ║    This script will set up a complete GitHub Actions        ║
 ║    self-hosted runner with monitoring and deployment        ║
@@ -49,41 +58,40 @@ EOF
     echo -e "${NC}"
 }
 
-# Check if running on Windows with GitBash
-check_environment() {
-    if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
-        log "Detected Windows environment with GitBash"
+# OS detection
+check_os() {
+    case "$(uname -s)" in
+        Linux*)   OS=Linux;;
+        Darwin*)  OS=Mac;;
+        MINGW*|MSYS*|CYGWIN*) OS=WindowsGitBash;;
+        *)        OS="UNKNOWN";;
+    esac
+
+    if [[ "$OS" == "Linux" ]]; then
+        log "Detected Linux environment."
+    elif [[ "$OS" == "Mac" ]]; then
+        log "Detected macOS environment."
+    elif [[ "$OS" == "WindowsGitBash" ]]; then
+        log "Detected Windows (GitBash) environment."
+        warn "For PowerShell, use install.ps1 instead."
     else
-        warn "This script is designed for Windows with GitBash"
-        warn "For Linux/macOS, please use the setup.sh script directly"
-    fi
-    
-    # Check if we're in a WSL environment
-    if grep -q Microsoft /proc/version 2>/dev/null; then
-        log "Detected WSL environment"
+        error "Unsupported OS: $(uname -s). This script supports Linux, macOS, and GitBash."
     fi
 }
 
 # Check prerequisites
 check_prerequisites() {
     log "Checking prerequisites..."
-    
-    # Check if curl is available
     if ! command -v curl &> /dev/null; then
         error "curl is required but not installed. Please install curl first."
     fi
-    
-    # Check if git is available
     if ! command -v git &> /dev/null; then
-        error "git is required but not installed. Please install Git for Windows first."
+        error "git is required but not installed. Please install git first."
     fi
-    
-    # Check if wget is available (fallback for curl)
-    if ! command -v wget &> /dev/null; then
-        warn "wget not found, will use curl for downloads"
+    if ! command -v unzip &> /dev/null; then
+        warn "unzip not found. If git clone fails, zip fallback may not work."
     fi
-    
-    log "Prerequisites check passed"
+    log "Prerequisites check passed."
 }
 
 # Get installation directory
@@ -93,22 +101,15 @@ get_install_dir() {
     else
         INSTALL_DIR="$HOME/github-runner"
     fi
-    
-    # Create installation directory
     mkdir -p "$INSTALL_DIR"
     cd "$INSTALL_DIR"
-    
     log "Installation directory: $INSTALL_DIR"
 }
 
 # Download repository
 download_repository() {
     log "Downloading GitHub Actions runner setup..."
-    
-    # Repository URL (update this with your actual repository)
     REPO_URL="https://github.com/mikemainguy/bldr"
-    
-    # Check if directory already exists
     if [[ -d "bldr" ]]; then
         warn "bldr directory already exists"
         read -p "Do you want to overwrite it? (y/N): " -n 1 -r
@@ -119,12 +120,9 @@ download_repository() {
             error "Installation cancelled"
         fi
     fi
-    
-    # Clone repository
     if git clone "$REPO_URL" bldr 2>/dev/null; then
         log "Repository downloaded successfully"
     else
-        # Fallback: download as zip
         warn "Git clone failed, trying zip download..."
         if command -v curl &> /dev/null; then
             curl -L "$REPO_URL/archive/main.zip" -o bldr.zip
@@ -133,21 +131,17 @@ download_repository() {
         else
             error "Neither curl nor wget available for download"
         fi
-        
         unzip bldr.zip
         mv bldr-main bldr
         rm bldr.zip
         log "Repository downloaded successfully (zip)"
     fi
-    
     cd bldr
 }
 
 # Setup environment
 setup_environment() {
     log "Setting up environment configuration..."
-    
-    # Copy environment template
     if [[ -f "env.example" ]]; then
         cp env.example .env
         log "Environment template copied to .env"
@@ -163,72 +157,48 @@ create_basic_env() {
     cat > .env << 'EOF'
 # GitHub Actions Runner Configuration
 # Please edit these values with your actual configuration
-
-# GitHub Configuration
 GITHUB_TOKEN=your_github_personal_access_token_here
 GITHUB_REPOSITORY=owner/repository-name
 RUNNER_LABELS=ubuntu,nodejs,self-hosted
 RUNNER_NAME=ubuntu-runner-$(hostname)
-
-# Runner Configuration
 RUNNER_WORK_DIRECTORY=/home/github-runner/_work
 RUNNER_USER=github-runner
 RUNNER_GROUP=github-runner
-
-# Production Deployment Configuration
 PRODUCTION_HOST=your-production-server.com
 PRODUCTION_USER=deploy
 PRODUCTION_PORT=22
 PRODUCTION_PATH=/var/www/apps
 PRODUCTION_BACKUP_PATH=/var/backups
-
-# Domain and SSL Configuration
 DOMAIN_NAME=your-app-domain.com
 SSL_EMAIL=admin@your-domain.com
 SSL_STAGING=false
-
-# Docker Configuration
 DOCKER_REGISTRY=your-registry.com
 DOCKER_USERNAME=your-docker-username
 DOCKER_PASSWORD=your-docker-password
 DOCKER_IMAGE_PREFIX=your-app
-
-# Monitoring Configuration
 PROMETHEUS_PORT=9090
 GRAFANA_PORT=3000
 GRAFANA_ADMIN_USER=admin
 GRAFANA_ADMIN_PASSWORD=secure_password_here
-
-# Logging Configuration
 LOG_LEVEL=info
 LOG_RETENTION_DAYS=30
 LOG_PATH=/var/log/github-runner
-
-# Backup Configuration
 BACKUP_RETENTION_DAYS=7
 BACKUP_SCHEDULE="0 2 * * *"
 BACKUP_PATH=/var/backups
-
-# Security Configuration
 FIREWALL_ENABLED=true
 SSH_KEY_PATH=/home/github-runner/.ssh/id_rsa
 SSL_CERT_PATH=/etc/ssl/certs
 SSL_KEY_PATH=/etc/ssl/private
-
-# Resource Limits
 RUNNER_MAX_CONCURRENT_JOBS=4
 RUNNER_MEMORY_LIMIT=4g
 RUNNER_CPU_LIMIT=2
-
-# Notification Configuration
 SLACK_WEBHOOK_URL=your_slack_webhook_url
 EMAIL_NOTIFICATIONS=false
 EMAIL_SMTP_HOST=smtp.gmail.com
 EMAIL_SMTP_PORT=587
 EMAIL_USER=your-email@gmail.com
 EMAIL_PASSWORD=your-app-password
-
-# Development/Testing Configuration
 ENVIRONMENT=production
 DEBUG_MODE=false
 TEST_MODE=false
@@ -238,7 +208,6 @@ EOF
 # Make scripts executable
 make_scripts_executable() {
     log "Making scripts executable..."
-    
     if [[ -d "scripts" ]]; then
         chmod +x scripts/*.sh
         log "Scripts made executable"
@@ -277,11 +246,8 @@ show_next_steps() {
 ╚══════════════════════════════════════════════════════════════╝
 EOF
     echo -e "${NC}"
-    
     log "Installation completed successfully!"
     log "Installation directory: $INSTALL_DIR/bldr"
-    
-    # Show important files
     echo ""
     info "Important files:"
     echo "  📄 .env                    - Environment configuration"
@@ -290,7 +256,6 @@ EOF
     echo "  📄 IMPLEMENTATION_PLAN.md  - Complete project plan"
     echo "  🔧 scripts/                - Setup and management scripts"
     echo "  📋 workflows/              - GitHub Actions workflow templates"
-    
     echo ""
     warn "⚠️  IMPORTANT: Edit .env file with your actual configuration before proceeding!"
 }
@@ -317,7 +282,7 @@ show_help() {
 # Show version
 show_version() {
     echo "GitHub Actions Runner Installer v1.0.0"
-    echo "Copyright (c) 2024 Your Organization"
+    echo "Copyright (c) 2024 Michael Mainguy"
     echo "License: MIT"
 }
 
@@ -333,10 +298,10 @@ parse_args() {
                 show_version
                 exit 0
                 ;;
-            -*)
+            -* )
                 error "Unknown option: $1"
                 ;;
-            *)
+            * )
                 INSTALL_DIR="$1"
                 shift
                 ;;
@@ -347,34 +312,16 @@ parse_args() {
 # Main installation function
 main() {
     show_banner
-    
-    # Parse arguments
     parse_args "$@"
-    
-    # Check environment
-    check_environment
-    
-    # Check prerequisites
+    check_os
     check_prerequisites
-    
-    # Get installation directory
     get_install_dir "$INSTALL_DIR"
-    
-    # Download repository
     download_repository
-    
-    # Setup environment
     setup_environment
-    
-    # Make scripts executable
     make_scripts_executable
-    
-    # Show next steps
     show_next_steps
 }
 
-# Handle script interruption
 trap 'echo -e "\n${RED}Installation interrupted${NC}"; exit 1' INT TERM
 
-# Run main function
 main "$@" 
