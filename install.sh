@@ -307,6 +307,107 @@ make_scripts_executable() {
     fi
 }
 
+# Detect user's shell and add configure script to PATH
+setup_shell_integration() {
+    log "Setting up shell integration..."
+    
+    # Get the user's default shell
+    local user_shell=$(getent passwd "$USER" | cut -d: -f7)
+    local shell_name=$(basename "$user_shell")
+    
+    # Fallback to current shell if getent fails
+    if [[ -z "$user_shell" ]]; then
+        user_shell="$SHELL"
+        shell_name=$(basename "$SHELL")
+    fi
+    
+    log "Detected shell: $shell_name ($user_shell)"
+    
+    # Get the appropriate profile file
+    local profile_file=""
+    case "$shell_name" in
+        bash)
+            if [[ -f "$HOME/.bashrc" ]]; then
+                profile_file="$HOME/.bashrc"
+            elif [[ -f "$HOME/.bash_profile" ]]; then
+                profile_file="$HOME/.bash_profile"
+            fi
+            ;;
+        zsh)
+            if [[ -f "$HOME/.zshrc" ]]; then
+                profile_file="$HOME/.zshrc"
+            fi
+            ;;
+        fish)
+            if [[ -d "$HOME/.config/fish" ]]; then
+                profile_file="$HOME/.config/fish/config.fish"
+            fi
+            ;;
+        *)
+            warn "Unsupported shell: $shell_name"
+            return 1
+            ;;
+    esac
+    
+    if [[ -z "$profile_file" ]]; then
+        warn "Could not find profile file for $shell_name"
+        return 1
+    fi
+    
+    # Create the scripts directory in user's home if it doesn't exist
+    local scripts_dir="$HOME/.local/bin"
+    mkdir -p "$scripts_dir"
+    
+    # Create a symlink to the configure script
+    local configure_script="$INSTALL_DIR/bldr/scripts/configure.sh"
+    local symlink_path="$scripts_dir/bldr-configure"
+    
+    if [[ -f "$configure_script" ]]; then
+        # Remove existing symlink if it exists
+        if [[ -L "$symlink_path" ]]; then
+            rm "$symlink_path"
+        fi
+        
+        # Create new symlink
+        ln -sf "$configure_script" "$symlink_path"
+        log "Created symlink: $symlink_path -> $configure_script"
+        
+        # Add to PATH if not already there
+        local path_export=""
+        case "$shell_name" in
+            bash|zsh)
+                path_export="export PATH=\"\$HOME/.local/bin:\$PATH\""
+                ;;
+            fish)
+                path_export="set -gx PATH \$HOME/.local/bin \$PATH"
+                ;;
+        esac
+        
+        if [[ -n "$path_export" ]]; then
+            # Check if PATH is already set
+            if ! grep -q "\.local/bin" "$profile_file" 2>/dev/null; then
+                echo "" >> "$profile_file"
+                echo "# Added by bldr installer" >> "$profile_file"
+                echo "$path_export" >> "$profile_file"
+                log "Added PATH export to $profile_file"
+            else
+                log "PATH already configured in $profile_file"
+            fi
+        fi
+        
+        # Export PATH for current session
+        export PATH="$HOME/.local/bin:$PATH"
+        
+        info "✅ Shell integration complete!"
+        echo "  You can now run 'bldr-configure' from anywhere to configure your environment"
+        echo "  Changes will take effect in new shell sessions"
+        
+    else
+        warn "Configure script not found at $configure_script"
+        return 1
+    fi
+}
+
 # Ask user if they want to configure now
 ask_for_configuration() {
     echo ""
@@ -377,7 +478,8 @@ show_manual_config_instructions() {
     info "To configure your environment:"
     echo ""
     echo "  🎯 RECOMMENDED: Run the interactive configuration script:"
-    echo "     ./scripts/configure.sh"
+    echo "     bldr-configure                    # From anywhere (after shell restart)"
+    echo "     ./scripts/configure.sh            # From installation directory"
     echo ""
     echo "  📝 OR manually edit the .env file:"
     echo "     nano .env"
@@ -502,6 +604,7 @@ main() {
     download_repository
     setup_environment
     make_scripts_executable
+    setup_shell_integration
     show_next_steps
 }
 
