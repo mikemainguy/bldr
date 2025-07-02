@@ -1,0 +1,192 @@
+version: '3.8'
+
+services:
+  # GitHub Actions Runner
+  github-runner:
+    image: myoung34/github-runner:latest
+    container_name: github-runner
+    restart: unless-stopped
+    environment:
+      - REPO_URL=${GITHUB_REPOSITORY}
+      - RUNNER_TOKEN=${GITHUB_TOKEN}
+      - RUNNER_NAME=${RUNNER_NAME}
+      - RUNNER_LABELS=${RUNNER_LABELS}
+      - RUNNER_WORK_DIRECTORY=${RUNNER_WORK_DIRECTORY}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./config/runner:/opt/hostedtoolcache
+      - ${RUNNER_WORK_DIRECTORY}:${RUNNER_WORK_DIRECTORY}
+      - ./logs:/var/log/github-runner
+    networks:
+      - runner-network
+    depends_on:
+      - prometheus
+      - grafana
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./config/nginx/conf.d:/etc/nginx/conf.d
+      - ./config/ssl:/etc/ssl
+      - ./logs/nginx:/var/log/nginx
+    networks:
+      - runner-network
+    depends_on:
+      - github-runner
+
+  # Prometheus Monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - "${PROMETHEUS_PORT}:9090"
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - runner-network
+
+  # Grafana Dashboard
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "${GRAFANA_PORT}:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/grafana/provisioning:/etc/grafana/provisioning
+      - ./config/grafana/dashboards:/var/lib/grafana/dashboards
+    networks:
+      - runner-network
+    depends_on:
+      - prometheus
+
+  # Node Exporter for System Metrics
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - runner-network
+
+  # cAdvisor for Container Metrics
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - runner-network
+
+  # Redis for Caching and Session Storage
+  redis:
+    image: redis:alpine
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./config/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    networks:
+      - runner-network
+
+  # PostgreSQL Database (if needed)
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./config/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - runner-network
+
+  # Let's Encrypt SSL Certificate Manager
+  certbot:
+    image: certbot/certbot:latest
+    container_name: certbot
+    volumes:
+      - ./config/ssl:/etc/letsencrypt
+      - ./config/nginx/conf.d:/etc/nginx/conf.d
+    command: certonly --webroot --webroot-path=/var/www/html --email ${SSL_EMAIL} --agree-tos --no-eff-email -d ${DOMAIN_NAME}
+    networks:
+      - runner-network
+
+  # Backup Service
+  backup:
+    image: alpine:latest
+    container_name: backup-service
+    restart: unless-stopped
+    volumes:
+      - ./scripts/backup.sh:/backup.sh
+      - ${BACKUP_PATH}:/backups
+      - postgres_data:/var/lib/postgresql/data
+      - grafana_data:/var/lib/grafana
+    environment:
+      - BACKUP_RETENTION_DAYS=${BACKUP_RETENTION_DAYS}
+      - BACKUP_SCHEDULE=${BACKUP_SCHEDULE}
+    command: sh -c "apk add --no-cache postgresql-client && chmod +x /backup.sh && /backup.sh"
+    networks:
+      - runner-network
+
+volumes:
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  redis_data:
+    driver: local
+  postgres_data:
+    driver: local
+
+networks:
+  runner-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16 

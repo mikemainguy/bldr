@@ -1,0 +1,332 @@
+name: Node.js CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.github/**'
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+      force_deploy:
+        description: 'Force deployment even if tests fail'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  NODE_VERSION: '18'
+  REGISTRY: ${{ secrets.DOCKER_REGISTRY }}
+  IMAGE_NAME: ${{ secrets.DOCKER_IMAGE_PREFIX }}/${{ github.event.repository.name }}
+
+jobs:
+  # Lint and Test Job
+  test:
+    name: Lint and Test
+    runs-on: self-hosted
+    outputs:
+      test-passed: ${{ steps.test-result.outputs.passed }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: |
+        npm ci
+        npm audit --audit-level=moderate
+
+    - name: Run linting
+      run: |
+        npm run lint || echo "Linting failed but continuing..."
+        npm run lint:fix || echo "Lint fix failed but continuing..."
+
+    - name: Run tests
+      id: test-result
+      run: |
+        npm run test:coverage
+        echo "passed=true" >> $GITHUB_OUTPUT
+      continue-on-error: true
+
+    - name: Upload test coverage
+      uses: codecov/codecov-action@v3
+      if: always()
+      with:
+        file: ./coverage/lcov.info
+        flags: unittests
+        name: codecov-umbrella
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results
+        path: |
+          coverage/
+          test-results/
+          junit.xml
+
+  # Security Scan Job
+  security:
+    name: Security Scan
+    runs-on: self-hosted
+    needs: test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+    - name: Run npm audit
+      run: |
+        npm audit --audit-level=high
+        npm audit fix --audit-level=high || true
+
+    - name: Run Snyk security scan
+      uses: snyk/actions/node@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --severity-threshold=high
+
+  # Build and Push Job
+  build:
+    name: Build and Push Docker Image
+    runs-on: self-hosted
+    needs: [test, security]
+    if: |
+      github.event_name == 'push' && 
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop') &&
+      needs.test.outputs.test-passed == 'true'
+    
+    outputs:
+      image-tag: ${{ steps.build.outputs.image-tag }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=sha,prefix={{branch}}-
+
+    - name: Build and push Docker image
+      id: build
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          NODE_ENV=${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+          BUILD_DATE=${{ github.event.head_commit.timestamp }}
+          VCS_REF=${{ github.sha }}
+          VERSION=${{ github.ref_name }}
+
+    - name: Set image tag output
+      run: echo "image-tag=${{ steps.meta.outputs.tags }}" >> $GITHUB_OUTPUT
+
+  # Deploy to Staging
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: self-hosted
+    needs: build
+    if: |
+      github.ref == 'refs/heads/develop' &&
+      needs.build.outputs.image-tag != ''
+    environment: staging
+    
+    steps:
+    - name: Deploy to staging
+      run: |
+        ./scripts/deploy.sh \
+          --app ${{ github.event.repository.name }} \
+          --env staging \
+          --tag ${{ needs.build.outputs.image-tag }}
+
+    - name: Run smoke tests
+      run: |
+        # Wait for deployment to be ready
+        sleep 30
+        
+        # Run smoke tests
+        curl -f http://staging.${{ secrets.DOMAIN_NAME }}/health || exit 1
+        curl -f http://staging.${{ secrets.DOMAIN_NAME }}/api/status || exit 1
+
+    - name: Notify deployment status
+      if: always()
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        channel: '#deployments'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # Deploy to Production
+  deploy-production:
+    name: Deploy to Production
+    runs-on: self-hosted
+    needs: build
+    if: |
+      github.ref == 'refs/heads/main' &&
+      needs.build.outputs.image-tag != ''
+    environment: production
+    
+    steps:
+    - name: Deploy to production
+      run: |
+        ./scripts/deploy.sh \
+          --app ${{ github.event.repository.name }} \
+          --env production \
+          --tag ${{ needs.build.outputs.image-tag }}
+
+    - name: Run health checks
+      run: |
+        # Wait for deployment to be ready
+        sleep 30
+        
+        # Run comprehensive health checks
+        curl -f https://${{ secrets.DOMAIN_NAME }}/health || exit 1
+        curl -f https://${{ secrets.DOMAIN_NAME }}/api/status || exit 1
+        
+        # Check application metrics
+        curl -f https://${{ secrets.DOMAIN_NAME }}/metrics || exit 1
+
+    - name: Run integration tests
+      run: |
+        # Run integration tests against production
+        npm run test:integration:prod || exit 1
+
+    - name: Notify deployment status
+      if: always()
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        channel: '#deployments'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # Post-deployment monitoring
+  monitor:
+    name: Post-deployment Monitoring
+    runs-on: self-hosted
+    needs: [deploy-staging, deploy-production]
+    if: always()
+    
+    steps:
+    - name: Check application health
+      run: |
+        if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+          URL="https://${{ secrets.DOMAIN_NAME }}"
+        else
+          URL="http://staging.${{ secrets.DOMAIN_NAME }}"
+        fi
+        
+        # Monitor for 5 minutes
+        for i in {1..30}; do
+          if curl -f "$URL/health" > /dev/null 2>&1; then
+            echo "Application is healthy"
+            break
+          else
+            echo "Health check failed, retrying in 10 seconds..."
+            sleep 10
+          fi
+        done
+
+    - name: Check error rates
+      run: |
+        # Check error rates in logs
+        if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+          ssh ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }} \
+            "docker logs ${{ github.event.repository.name }} 2>&1 | grep -i error | wc -l"
+        fi
+
+    - name: Send monitoring report
+      if: always()
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        channel: '#monitoring'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+        text: |
+          Post-deployment monitoring completed for ${{ github.event.repository.name }}
+          Branch: ${{ github.ref_name }}
+          Status: ${{ job.status }}
+
+  # Cleanup
+  cleanup:
+    name: Cleanup
+    runs-on: self-hosted
+    if: always()
+    
+    steps:
+    - name: Clean up old Docker images
+      run: |
+        # Remove unused Docker images older than 7 days
+        docker image prune -a -f --filter "until=168h"
+        
+        # Remove unused Docker volumes
+        docker volume prune -f
+        
+        # Remove unused Docker networks
+        docker network prune -f
+
+    - name: Clean up workspace
+      if: always()
+      run: |
+        # Clean up workspace
+        rm -rf ${{ github.workspace }}/node_modules
+        rm -rf ${{ github.workspace }}/coverage
+        rm -rf ${{ github.workspace }}/.nyc_output 
