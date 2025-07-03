@@ -21,6 +21,21 @@ if ! sudo -n true 2>/dev/null; then
     exit 1
 fi
 
+# Check if github-runner user exists
+if id "github-runner" &>/dev/null; then
+    echo -e "${GREEN}[$(date +'%Y-%m-%d %H:%M:%S')] INFO: The runner user 'github-runner' already exists.${NC}"
+else
+    echo -e "${YELLOW}[$(date +'%Y-%m-%d %H:%M:%S')] WARNING: The runner user 'github-runner' does not exist yet.${NC}"
+    read -p "Would you like to create the 'github-runner' user now? (Y/n): " create_user
+    if [[ ! $create_user =~ ^[Nn]$ ]]; then
+        sudo useradd -m -s /bin/bash github-runner
+        sudo usermod -aG docker github-runner
+        echo -e "${GREEN}[$(date +'%Y-%m-%d %H:%M:%S')] INFO: The runner user 'github-runner' has been created and added to the docker group.${NC}"
+    else
+        echo -e "${YELLOW}[$(date +'%Y-%m-%d %H:%M:%S')] WARNING: The runner user will be created during setup (sudo ./scripts/setup.sh).${NC}"
+    fi
+fi
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
