@@ -5,12 +5,7 @@
 # Usage (Linux/macOS):
 #   curl -sSL https://raw.githubusercontent.com/mikemainguy/bldr/main/install.sh | bash
 #
-# Usage (Windows GitBash):
-#   curl -sSL https://raw.githubusercontent.com/mikemainguy/bldr/main/install.sh | bash
-#
 # This script will set up the bldr repo for you in ~/.bldr (or a custom directory).
-#
-# For PowerShell on Windows, use the install.ps1 script instead.
 
 set -e
 
@@ -48,11 +43,11 @@ show_banner() {
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
 ║    🚀 GitHub Actions Runner Installer v$version              ║
-║    Ubuntu Linux, macOS, and GitBash (Windows)                ║
+║    Ubuntu Linux and macOS                                    ║
 ║                                                              ║
-║    This script will set up a complete GitHub Actions        ║
-║    self-hosted runner with monitoring and deployment        ║
-║    capabilities for Node.js applications.                   ║
+║    This script will set up a complete GitHub Actions         ║
+║    self-hosted runner with deployment capabilities           ║
+║    for Node.js applications.                                 ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
 EOF
@@ -64,7 +59,6 @@ check_os() {
     case "$(uname -s)" in
         Linux*)   export OS=Linux;;
         Darwin*)  export OS=Mac;;
-        MINGW*|MSYS*|CYGWIN*) export OS=WindowsGitBash;;
         *)        export OS="UNKNOWN";;
     esac
 
@@ -72,11 +66,8 @@ check_os() {
         log "Detected Linux environment."
     elif [[ "$OS" == "Mac" ]]; then
         log "Detected macOS environment."
-    elif [[ "$OS" == "WindowsGitBash" ]]; then
-        log "Detected Windows (GitBash) environment."
-        warn "For PowerShell, use install.ps1 instead."
     else
-        error "Unsupported OS: $(uname -s). This script supports Linux, macOS, and GitBash."
+        error "Unsupported OS: $(uname -s). This script supports Linux and macOS."
     fi
 }
 
@@ -127,12 +118,9 @@ install_curl() {
         else
             error "Homebrew not found. Please install Homebrew first or install curl manually."
         fi
-    elif [[ "$OS" == "WindowsGitBash" ]]; then
-        error "curl not found in GitBash. Please install curl manually or use wget instead."
     else
         error "Could not install curl automatically. Please install curl manually."
     fi
-    
     # Verify curl installation
     if command -v curl &> /dev/null; then
         log "curl installed successfully: $(curl --version | head -n1)"
@@ -171,12 +159,9 @@ install_git() {
         else
             error "Homebrew not found. Please install Homebrew first or install git manually."
         fi
-    elif [[ "$OS" == "WindowsGitBash" ]]; then
-        error "Git not found in GitBash. Please install Git for Windows from https://git-scm.com/download/win"
     else
         error "Could not install git automatically. Please install git manually."
     fi
-    
     # Verify git installation
     if command -v git &> /dev/null; then
         log "Git installed successfully: $(git --version)"
@@ -630,11 +615,15 @@ if [ -d "$HOME/.bldr" ]; then
     echo "The .bldr directory already exists at $HOME/.bldr."
     read -p "Would you like to check for updates and install them? (Y/n): " update_bldr
     if [[ ! $update_bldr =~ ^[Nn]$ ]]; then
-        echo "Checking for updates in $HOME/.bldr..."
-        cd "$HOME/.bldr"
-        git pull
-        cd - > /dev/null
-        echo "Update complete."
+        if [ -d "$HOME/.bldr/bldr" ]; then
+            echo "Checking for updates in $HOME/.bldr/bldr..."
+            cd "$HOME/.bldr/bldr"
+            git pull
+            cd - > /dev/null
+            echo "Update complete."
+        else
+            echo "No bldr repository found in $HOME/.bldr/bldr. Skipping update."
+        fi
     else
         echo "Skipping update."
     fi
