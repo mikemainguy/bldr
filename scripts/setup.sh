@@ -155,10 +155,9 @@ setup_directories() {
     sudo chown -R github-runner:github-runner /var/backups
     
     # Create config directories
-    mkdir -p config/{nginx,ssl,runner,grafana,prometheus,redis,postgres}
+    mkdir -p config/{nginx,ssl,runner}
     mkdir -p scripts
     mkdir -p workflows
-    mkdir -p monitoring
     mkdir -p docs
     mkdir -p logs
     
@@ -206,12 +205,6 @@ setup_firewall() {
     # Allow HTTP and HTTPS
     sudo ufw allow 80/tcp
     sudo ufw allow 443/tcp
-    
-    # Allow Docker ports
-    sudo ufw allow 3000/tcp  # Grafana
-    sudo ufw allow 9090/tcp  # Prometheus
-    sudo ufw allow 9100/tcp  # Node Exporter
-    sudo ufw allow 8080/tcp  # cAdvisor
     
     # Enable firewall
     sudo ufw --force enable
@@ -274,41 +267,6 @@ EOF
     log "Log rotation configured successfully."
 }
 
-# Setup monitoring
-setup_monitoring() {
-    log "Setting up monitoring..."
-    
-    # Create Prometheus configuration
-    cat > config/prometheus.yml <<EOF
-global:
-  scrape_interval: 15s
-  evaluation_interval: 15s
-
-rule_files:
-  # - "first_rules.yml"
-  # - "second_rules.yml"
-
-scrape_configs:
-  - job_name: 'prometheus'
-    static_configs:
-      - targets: ['localhost:9090']
-
-  - job_name: 'node-exporter'
-    static_configs:
-      - targets: ['localhost:9100']
-
-  - job_name: 'cadvisor'
-    static_configs:
-      - targets: ['localhost:8080']
-
-  - job_name: 'github-runner'
-    static_configs:
-      - targets: ['localhost:9100']
-EOF
-    
-    log "Monitoring configured successfully."
-}
-
 # Setup environment file
 setup_environment() {
     log "Setting up environment configuration..."
@@ -367,7 +325,6 @@ main() {
     setup_firewall
     setup_fail2ban
     setup_log_rotation
-    setup_monitoring
     setup_environment
     setup_systemd_service
     

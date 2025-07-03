@@ -158,8 +158,7 @@ This script will:
 4. Setup directories and permissions
 5. Configure SSH keys
 6. Setup firewall and security
-7. Configure monitoring
-8. Create systemd service
+7. Create systemd service
 
 ### Reboot System
 
@@ -196,9 +195,8 @@ This script will:
 
 1. Start Docker services
 2. Start the GitHub Actions runner
-3. Setup monitoring dashboards
-4. Configure SSL certificates
-5. Setup backup schedules
+3. Configure SSL certificates
+4. Setup backup schedules
 
 ## Step 8: Verify Installation
 
@@ -214,13 +212,6 @@ sudo systemctl status actions.runner.*
 # Check if runner is connected
 curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runners"
 ```
-
-### Access Monitoring Dashboards
-
-- **Grafana**: http://localhost:3000 (admin/admin)
-- **Prometheus**: http://localhost:9090
-- **cAdvisor**: http://localhost:8080
-- **Node Exporter**: http://localhost:9100
 
 ## Step 9: Configure GitHub Repository
 
@@ -350,20 +341,14 @@ sudo -u github-runner ./config.sh remove --unattended
    - Limited permissions
    - SSH key authentication
 
-4. **Monitoring**
-   - Comprehensive logging
-   - Security event monitoring
-   - Resource usage tracking
-
 ## Next Steps
 
 After successful setup:
 
 1. Configure your Node.js applications
-2. Set up additional monitoring alerts
-3. Configure backup strategies
-4. Set up disaster recovery procedures
-5. Document your deployment processes
+2. Configure backup strategies
+3. Set up disaster recovery procedures
+4. Document your deployment processes
 
 ## Support
 

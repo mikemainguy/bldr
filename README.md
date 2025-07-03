@@ -12,8 +12,6 @@ This project provides a complete setup for running GitHub Actions self-hosted ru
 - **Node.js Autodeployment**: Automatic deployment of Node.js projects on code changes
 - **Docker Integration**: Containerized deployment for consistent environments
 - **SSL/TLS Support**: Secure HTTPS deployments with Let's Encrypt
-- **Monitoring & Logging**: Built-in monitoring and centralized logging
-- **Backup & Recovery**: Automated backup and disaster recovery procedures
 - **Security Hardening**: Security best practices and access controls
 
 ## Architecture
@@ -106,7 +104,7 @@ bldr/
 │   ├── register-runner.sh  # GitHub runner registration
 │   ├── start-runner.sh     # Start runner service
 │   ├── deploy.sh           # Deployment script
-│   └── backup.sh           # Backup script
+│   └── backup.sh           # Backup script (remove if not present)
 ├── config/                  # Configuration files
 │   ├── nginx/              # Nginx configuration
 │   ├── ssl/                # SSL certificates
@@ -114,11 +112,7 @@ bldr/
 ├── workflows/              # GitHub Actions workflow templates
 │   ├── nodejs-deploy.yml   # Node.js deployment workflow
 │   └── security-scan.yml   # Security scanning workflow
-├── monitoring/             # Monitoring and logging
-│   ├── prometheus.yml      # Prometheus configuration
-│   ├── grafana/            # Grafana dashboards
-│   └── logs/               # Log files
-└── docs/                   # Documentation
+├── docs/                   # Documentation
     ├── setup.md            # Detailed setup guide
     ├── deployment.md       # Deployment guide
     ├── troubleshooting.md  # Troubleshooting guide
@@ -226,26 +220,6 @@ The runner can be configured for:
 - **Access Control**: Role-based access and authentication
 - **Audit Logging**: Comprehensive audit trails
 - **Regular Updates**: Automated security updates
-
-## Monitoring & Maintenance
-
-### Health Monitoring
-- Runner status and performance metrics
-- Application health checks
-- Resource utilization monitoring
-- Error rate tracking
-
-### Logging
-- Centralized log aggregation
-- Structured logging with correlation IDs
-- Log retention and rotation policies
-- Real-time log streaming
-
-### Backup & Recovery
-- Automated backup schedules
-- Point-in-time recovery capabilities
-- Disaster recovery procedures
-- Data integrity verification
 
 ## Troubleshooting
 
