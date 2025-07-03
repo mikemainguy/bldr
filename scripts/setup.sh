@@ -288,6 +288,17 @@ EOF
     log "Systemd service configured successfully."
 }
 
+# Create bldr-uninstall symlink
+create_uninstall_symlink() {
+    local scripts_dir="$HOME/.local/bin"
+    mkdir -p "$scripts_dir"
+    ln -sf "$(pwd)/scripts/uninstall.sh" "$scripts_dir/bldr-uninstall"
+    log "Created symlink: $scripts_dir/bldr-uninstall -> $(pwd)/scripts/uninstall.sh"
+    if ! echo "$PATH" | grep -q "$scripts_dir"; then
+        warn "$scripts_dir is not in your PATH. Add it to your shell profile to use bldr-uninstall globally."
+    fi
+}
+
 # Main setup function
 main() {
     log "Starting GitHub Actions Runner setup..."
@@ -306,6 +317,7 @@ main() {
     setup_log_rotation
     setup_environment
     setup_systemd_service
+    create_uninstall_symlink
     
     log "Setup completed successfully!"
     log "Next steps:"
