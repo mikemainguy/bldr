@@ -45,13 +45,13 @@ show_banner() {
     local version=$(get_version)
     echo -e "${CYAN}"
     cat << EOF
+     ⚙️  GitHub Actions Runner Configuration v$version         
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
-║    ⚙️  GitHub Actions Runner Configuration v$version         ║
 ║    Interactive Environment Setup                             ║
 ║                                                              ║
-║    This script will guide you through configuring           ║
-║    your GitHub Actions runner environment variables.        ║
+║    This script will guide you through configuring            ║
+║    your GitHub Actions runner environment variables.         ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
 EOF
@@ -162,61 +162,6 @@ configure_github() {
     echo ""
 }
 
-# Prompt for production server configuration
-configure_production() {
-    echo -e "${CYAN}🚀 Production Server Configuration${NC}"
-    echo "=========================================="
-    
-    read -p "Enter production server hostname/IP: " PRODUCTION_HOST
-    
-    read -p "Enter production server username [deploy]: " PRODUCTION_USER
-    PRODUCTION_USER=${PRODUCTION_USER:-deploy}
-    
-    prompt_with_validation \
-        "Enter SSH port" \
-        "PRODUCTION_PORT" \
-        "validate_port" \
-        "22" \
-        "SSH port for connecting to production server"
-    
-    read -p "Enter production app path [/var/www/apps]: " PRODUCTION_PATH
-    PRODUCTION_PATH=${PRODUCTION_PATH:-/var/www/apps}
-    
-    read -p "Enter backup path [/var/backups]: " PRODUCTION_BACKUP_PATH
-    PRODUCTION_BACKUP_PATH=${PRODUCTION_BACKUP_PATH:-/var/backups}
-    
-    echo ""
-}
-
-# Prompt for domain and SSL configuration
-configure_domain() {
-    echo -e "${CYAN}🌐 Domain and SSL Configuration${NC}"
-    echo "====================================="
-    
-    prompt_with_validation \
-        "Enter your domain name" \
-        "DOMAIN_NAME" \
-        "validate_domain" \
-        "" \
-        "Example: myapp.com"
-    
-    prompt_with_validation \
-        "Enter admin email for SSL certificates" \
-        "SSL_EMAIL" \
-        "validate_email" \
-        "" \
-        "Used for Let's Encrypt SSL certificate notifications"
-    
-    read -p "Use staging SSL certificates? (y/N): " ssl_staging
-    if [[ $ssl_staging =~ ^[Yy]$ ]]; then
-        SSL_STAGING="true"
-    else
-        SSL_STAGING="false"
-    fi
-    
-    echo ""
-}
-
 # Prompt for Docker configuration
 configure_docker() {
     echo -e "${CYAN}🐳 Docker Configuration${NC}"
@@ -232,91 +177,6 @@ configure_docker() {
     
     read -p "Enter Docker image prefix [app]: " DOCKER_IMAGE_PREFIX
     DOCKER_IMAGE_PREFIX=${DOCKER_IMAGE_PREFIX:-app}
-    
-    echo ""
-}
-
-# Prompt for monitoring configuration
-configure_monitoring() {
-    echo -e "${CYAN}📊 Monitoring Configuration${NC}"
-    echo "================================="
-    
-    echo ""
-}
-
-# Prompt for advanced configuration
-configure_advanced() {
-    echo -e "${CYAN}⚙️  Advanced Configuration${NC}"
-    echo "==============================="
-    
-    read -p "Enter log level [info]: " LOG_LEVEL
-    LOG_LEVEL=${LOG_LEVEL:-info}
-    
-    read -p "Enter log retention days [30]: " LOG_RETENTION_DAYS
-    LOG_RETENTION_DAYS=${LOG_RETENTION_DAYS:-30}
-    
-    read -p "Enter backup retention days [7]: " BACKUP_RETENTION_DAYS
-    BACKUP_RETENTION_DAYS=${BACKUP_RETENTION_DAYS:-7}
-    
-    read -p "Enter backup schedule (cron format) [0 2 * * *]: " BACKUP_SCHEDULE
-    BACKUP_SCHEDULE=${BACKUP_SCHEDULE:-"0 2 * * *"}
-    
-    read -p "Enable firewall? (Y/n): " firewall_enabled
-    if [[ $firewall_enabled =~ ^[Nn]$ ]]; then
-        FIREWALL_ENABLED="false"
-    else
-        FIREWALL_ENABLED="true"
-    fi
-    
-    read -p "Enter runner max concurrent jobs [4]: " RUNNER_MAX_CONCURRENT_JOBS
-    RUNNER_MAX_CONCURRENT_JOBS=${RUNNER_MAX_CONCURRENT_JOBS:-4}
-    
-    read -p "Enter runner memory limit [4g]: " RUNNER_MEMORY_LIMIT
-    RUNNER_MEMORY_LIMIT=${RUNNER_MEMORY_LIMIT:-4g}
-    
-    read -p "Enter runner CPU limit [2]: " RUNNER_CPU_LIMIT
-    RUNNER_CPU_LIMIT=${RUNNER_CPU_LIMIT:-2}
-    
-    echo ""
-}
-
-# Prompt for notifications
-configure_notifications() {
-    echo -e "${CYAN}🔔 Notification Configuration${NC}"
-    echo "=================================="
-    
-    read -p "Enter Slack webhook URL (optional): " SLACK_WEBHOOK_URL
-    
-    read -p "Enable email notifications? (y/N): " email_notifications
-    if [[ $email_notifications =~ ^[Yy]$ ]]; then
-        EMAIL_NOTIFICATIONS="true"
-        
-        read -p "Enter SMTP host [smtp.gmail.com]: " EMAIL_SMTP_HOST
-        EMAIL_SMTP_HOST=${EMAIL_SMTP_HOST:-smtp.gmail.com}
-        
-        prompt_with_validation \
-            "Enter SMTP port" \
-            "EMAIL_SMTP_PORT" \
-            "validate_port" \
-            "587" \
-            "SMTP port for email notifications"
-        
-        prompt_with_validation \
-            "Enter email address" \
-            "EMAIL_USER" \
-            "validate_email" \
-            "" \
-            "Email address for sending notifications"
-        
-        read -s -p "Enter email password/app password: " EMAIL_PASSWORD
-        echo ""
-    else
-        EMAIL_NOTIFICATIONS="false"
-        EMAIL_SMTP_HOST="smtp.gmail.com"
-        EMAIL_SMTP_PORT="587"
-        EMAIL_USER="your-email@gmail.com"
-        EMAIL_PASSWORD="your-app-password"
-    fi
     
     echo ""
 }
@@ -337,23 +197,11 @@ RUNNER_WORK_DIRECTORY=/home/github-runner/_work
 RUNNER_USER=github-runner
 RUNNER_GROUP=github-runner
 
-# Production Server Configuration
-PRODUCTION_HOST=$PRODUCTION_HOST
-PRODUCTION_USER=$PRODUCTION_USER
-PRODUCTION_PORT=$PRODUCTION_PORT
-PRODUCTION_PATH=$PRODUCTION_PATH
-PRODUCTION_BACKUP_PATH=$PRODUCTION_BACKUP_PATH
 
-# Domain and SSL Configuration
-DOMAIN_NAME=$DOMAIN_NAME
-SSL_EMAIL=$SSL_EMAIL
-SSL_STAGING=$SSL_STAGING
 DOCKER_REGISTRY=$DOCKER_REGISTRY
 DOCKER_USERNAME=$DOCKER_USERNAME
 DOCKER_PASSWORD=$DOCKER_PASSWORD
 DOCKER_IMAGE_PREFIX=$DOCKER_IMAGE_PREFIX
-
-# Monitoring Configuration
 
 # Logging and Backup Configuration
 LOG_LEVEL=$LOG_LEVEL
@@ -363,24 +211,10 @@ BACKUP_RETENTION_DAYS=$BACKUP_RETENTION_DAYS
 BACKUP_SCHEDULE=$BACKUP_SCHEDULE
 BACKUP_PATH=/var/backups
 
-# Security Configuration
-FIREWALL_ENABLED=$FIREWALL_ENABLED
-SSH_KEY_PATH=/home/github-runner/.ssh/id_rsa
-SSL_CERT_PATH=/etc/ssl/certs
-SSL_KEY_PATH=/etc/ssl/private
-
 # Runner Performance Configuration
 RUNNER_MAX_CONCURRENT_JOBS=$RUNNER_MAX_CONCURRENT_JOBS
 RUNNER_MEMORY_LIMIT=$RUNNER_MEMORY_LIMIT
 RUNNER_CPU_LIMIT=$RUNNER_CPU_LIMIT
-
-# Notification Configuration
-SLACK_WEBHOOK_URL=$SLACK_WEBHOOK_URL
-EMAIL_NOTIFICATIONS=$EMAIL_NOTIFICATIONS
-EMAIL_SMTP_HOST=$EMAIL_SMTP_HOST
-EMAIL_SMTP_PORT=$EMAIL_SMTP_PORT
-EMAIL_USER=$EMAIL_USER
-EMAIL_PASSWORD=$EMAIL_PASSWORD
 
 # Environment Configuration
 ENVIRONMENT=production
@@ -399,23 +233,6 @@ show_summary() {
     echo "  Runner Name: $RUNNER_NAME"
     echo "  Labels: $RUNNER_LABELS"
     echo ""
-    echo -e "${GREEN}Production Server:${NC}"
-    echo "  Host: $PRODUCTION_HOST"
-    echo "  User: $PRODUCTION_USER"
-    echo "  Port: $PRODUCTION_PORT"
-    echo "  Path: $PRODUCTION_PATH"
-    echo ""
-    echo -e "${GREEN}Domain & SSL:${NC}"
-    echo "  Domain: $DOMAIN_NAME"
-    echo "  Email: $SSL_EMAIL"
-    echo "  Staging: $SSL_STAGING"
-    echo ""
-    echo -e "${GREEN}Advanced:${NC}"
-    echo "  Log Level: $LOG_LEVEL"
-    echo "  Firewall: $FIREWALL_ENABLED"
-    echo "  Max Jobs: $RUNNER_MAX_CONCURRENT_JOBS"
-    echo "  Email Notifications: $EMAIL_NOTIFICATIONS"
-    echo ""
 }
 
 # Main configuration function
@@ -427,12 +244,7 @@ main() {
     
     # Run configuration sections
     configure_github
-    configure_production
-    configure_domain
     configure_docker
-    configure_monitoring
-    configure_advanced
-    configure_notifications
     
     # Show summary
     show_summary
@@ -460,6 +272,17 @@ main() {
     echo ""
     echo -e "${GREEN}✅ Configuration complete!${NC}"
     echo ""
+    read -p "Would you like to automatically register the runner now? (Y/n): " auto_register
+    if [[ ! $auto_register =~ ^[Nn]$ ]]; then
+        if [[ -x "./scripts/register-runner.sh" ]]; then
+            echo -e "${CYAN}Registering the runner...${NC}"
+            ./scripts/register-runner.sh
+        else
+            echo -e "${RED}register-runner.sh not found or not executable. Please run it manually.${NC}"
+        fi
+    else
+        echo -e "${YELLOW}You can register the runner later by running: ./scripts/register-runner.sh${NC}"
+    fi
     info "Next steps:"
     echo "  1. Review the generated .env file"
     echo "  2. Transfer files to your Ubuntu server"
