@@ -21,6 +21,15 @@ if ! sudo -n true 2>/dev/null; then
     exit 1
 fi
 
+# Check for docker group and create if missing
+if getent group docker > /dev/null 2>&1; then
+    echo -e "${GREEN}[$(date +'%Y-%m-%d %H:%M:%S')] INFO: The 'docker' group already exists.${NC}"
+else
+    echo -e "${YELLOW}[$(date +'%Y-%m-%d %H:%M:%S')] WARNING: The 'docker' group does not exist. Creating it now...${NC}"
+    sudo groupadd docker
+    echo -e "${GREEN}[$(date +'%Y-%m-%d %H:%M:%S')] INFO: The 'docker' group has been created.${NC}"
+fi
+
 # Check if github-runner user exists
 if id "github-runner" &>/dev/null; then
     echo -e "${GREEN}[$(date +'%Y-%m-%d %H:%M:%S')] INFO: The runner user 'github-runner' already exists.${NC}"
