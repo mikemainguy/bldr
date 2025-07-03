@@ -249,7 +249,10 @@ show_summary() {
 # Main configuration function
 main() {
     show_banner
-    
+
+    # Ensure setup.sh is run to install dependencies
+    "$SCRIPT_DIR/setup.sh"
+
     info "Starting interactive configuration..."
     echo ""
     
