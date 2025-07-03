@@ -45,25 +45,38 @@ update_system() {
 
 # Install required packages
 install_packages() {
-    log "Installing required packages..."
-    
-    # Essential packages
-    sudo apt install -y \
-        curl \
-        wget \
-        git \
-        jq \
-        unzip \
-        software-properties-common \
-        apt-transport-https \
-        gnupg \
-        lsb-release \
-        htop \
-        vim \
-        rsync \
-        openssh-server \
-    
-    log "Required packages installed successfully."
+    log "Checking and installing required packages as needed..."
+
+    local packages=(
+        curl
+        wget
+        git
+        jq
+        unzip
+        software-properties-common
+        apt-transport-https
+        gnupg
+        lsb-release
+        htop
+        vim
+        rsync
+        openssh-server
+    )
+
+    local to_install=()
+    for pkg in "${packages[@]}"; do
+        if ! dpkg -s "$pkg" &>/dev/null; then
+            to_install+=("$pkg")
+        fi
+    done
+
+    if [ ${#to_install[@]} -gt 0 ]; then
+        log "Installing missing packages: ${to_install[*]}"
+        sudo apt-get update
+        sudo apt-get install -y "${to_install[@]}"
+    else
+        log "All required packages are already installed."
+    fi
 }
 
 # Install Docker
