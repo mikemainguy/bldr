@@ -1,5 +1,8 @@
 #!/bin/bash
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/logging.sh"
+
 # Always operate from the bldr project root, regardless of where called from
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do

@@ -1,7 +1,9 @@
 #!/bin/bash
 
-# Ensure setup.sh is run first to install all dependencies
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/logging.sh"
+
+# Ensure setup.sh is run first to install all dependencies
 "$SCRIPT_DIR/setup.sh"
 
 # Log all commands and their output to a file in the current working directory

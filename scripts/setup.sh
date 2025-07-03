@@ -1,5 +1,8 @@
 #!/bin/bash
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/logging.sh"
+
 # GitHub Actions Local Runner Setup Script
 # This script sets up a complete GitHub Actions runner environment on Ubuntu Linux
 
@@ -63,22 +66,16 @@ install_packages() {
         curl \
         wget \
         git \
+        jq \
         unzip \
         software-properties-common \
         apt-transport-https \
-        ca-certificates \
         gnupg \
         lsb-release \
         htop \
         vim \
-        ufw \
-        fail2ban \
-        logrotate \
-        cron \
         rsync \
         openssh-server \
-        nginx \
-        python3-certbot-nginx
     
     log "Required packages installed successfully."
 }
@@ -187,56 +184,6 @@ setup_ssh_keys() {
     log "SSH keys configured successfully."
 }
 
-# Setup firewall
-setup_firewall() {
-    log "Setting up firewall..."
-    
-    # Reset firewall
-    sudo ufw --force reset
-    
-    # Default policies
-    sudo ufw default deny incoming
-    sudo ufw default allow outgoing
-    
-    # Allow SSH
-    sudo ufw allow ssh
-    
-    # Allow HTTP and HTTPS
-    sudo ufw allow 80/tcp
-    sudo ufw allow 443/tcp
-    
-    # Enable firewall
-    sudo ufw --force enable
-    
-    log "Firewall configured successfully."
-}
-
-# Setup fail2ban
-setup_fail2ban() {
-    log "Setting up fail2ban..."
-    
-    # Create fail2ban configuration
-    sudo tee /etc/fail2ban/jail.local > /dev/null <<EOF
-[DEFAULT]
-bantime = 3600
-findtime = 600
-maxretry = 3
-
-[sshd]
-enabled = true
-port = ssh
-filter = sshd
-logpath = /var/log/auth.log
-maxretry = 3
-EOF
-    
-    # Restart fail2ban
-    sudo systemctl restart fail2ban
-    sudo systemctl enable fail2ban
-    
-    log "Fail2ban configured successfully."
-}
-
 # Setup log rotation
 setup_log_rotation() {
     log "Setting up log rotation..."
@@ -312,8 +259,6 @@ main() {
     create_runner_user
     setup_directories
     setup_ssh_keys
-    setup_firewall
-    setup_fail2ban
     setup_log_rotation
     setup_environment
     setup_systemd_service
