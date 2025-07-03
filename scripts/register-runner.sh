@@ -106,7 +106,26 @@ download_runner() {
     log "Download URL: $DOWNLOAD_URL"
     # Fetch release notes and extract SHA-256 hash
     RELEASE_BODY=$(curl -s "https://api.github.com/repos/actions/runner/releases/tags/${RUNNER_VERSION}" | jq -r .body)
+    
+    # Debug: Show what we're working with
+    log "Release notes preview (first 500 chars):"
+    echo "$RELEASE_BODY" | head -c 500
+    
+    # Try multiple extraction methods
     SHA256_EXPECTED=$(echo "$RELEASE_BODY" | grep -A1 "actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz" | grep -o '[a-f0-9]\{64\}' | head -1)
+    
+    # If that didn't work, try a different approach
+    if [[ -z "$SHA256_EXPECTED" ]]; then
+        log "First extraction method failed, trying alternative..."
+        SHA256_EXPECTED=$(echo "$RELEASE_BODY" | grep "actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz" | sed -n 's/.*<!-- BEGIN SHA linux-x64 -->\([a-f0-9]\{64\}\)<!-- END SHA linux-x64 -->.*/\1/p')
+    fi
+    
+    # If still no hash, try a more generic approach
+    if [[ -z "$SHA256_EXPECTED" ]]; then
+        log "Second extraction method failed, trying generic approach..."
+        SHA256_EXPECTED=$(echo "$RELEASE_BODY" | grep -o '[a-f0-9]\{64\}' | head -1)
+    fi
+    
     if [[ -z "$SHA256_EXPECTED" ]]; then
         error "Could not extract SHA-256 hash for version $RUNNER_VERSION from release notes. Aborting download."
     fi
