@@ -20,58 +20,34 @@ set -e
 
 # Check for sudo privileges
 if ! sudo -n true 2>/dev/null; then
-    echo -e "${RED}[$(date +'%Y-%m-%d %H:%M:%S')] ERROR: This script requires sudo privileges. Please ensure your user can run sudo commands without a password prompt.${NC}"
+    error "This script requires sudo privileges. Please ensure your user can run sudo commands without a password prompt."
     exit 1
 fi
 
 # Check for docker group and create if missing
 if getent group docker > /dev/null 2>&1; then
-    echo -e "${GREEN}[$(date +'%Y-%m-%d %H:%M:%S')] INFO: The 'docker' group already exists.${NC}"
+    log "The 'docker' group already exists."
 else
-    echo -e "${YELLOW}[$(date +'%Y-%m-%d %H:%M:%S')] WARNING: The 'docker' group does not exist. Creating it now...${NC}"
+    warn "The 'docker' group does not exist. Creating it now..."
     sudo groupadd docker
-    echo -e "${GREEN}[$(date +'%Y-%m-%d %H:%M:%S')] INFO: The 'docker' group has been created.${NC}"
+    log "The 'docker' group has been created."
 fi
 
 # Check if github-runner user exists
 if id "github-runner" &>/dev/null; then
-    echo -e "${GREEN}[$(date +'%Y-%m-%d %H:%M:%S')] INFO: The runner user 'github-runner' already exists.${NC}"
+    log "The runner user 'github-runner' already exists."
 else
-    echo -e "${YELLOW}[$(date +'%Y-%m-%d %H:%M:%S')] WARNING: The runner user 'github-runner' does not exist yet.${NC}"
+    warn "The runner user 'github-runner' does not exist yet."
     read -p "Would you like to create the 'github-runner' user now? (Y/n): " create_user
     if [[ ! $create_user =~ ^[Nn]$ ]]; then
         sudo useradd -m -s /bin/bash github-runner
         sudo usermod -aG docker github-runner
-        echo -e "${GREEN}[$(date +'%Y-%m-%d %H:%M:%S')] INFO: The runner user 'github-runner' has been created and added to the docker group.${NC}"
+        log "The runner user 'github-runner' has been created and added to the docker group."
     else
-        echo -e "${YELLOW}[$(date +'%Y-%m-%d %H:%M:%S')] WARNING: The runner user will be created during setup (sudo ./scripts/setup.sh).${NC}"
+        warn "The runner user will be created during setup (sudo ./scripts/setup.sh)."
     fi
 fi
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-NC='\033[0m' # No Color
-
-# Logging functions
-error() {
-    echo -e "${RED}[$(date +'%Y-%m-%d %H:%M:%S')] ERROR: $1${NC}" >&2
-}
-
-warn() {
-    echo -e "${YELLOW}[$(date +'%Y-%m-%d %H:%M:%S')] WARN: $1${NC}"
-}
-
-info() {
-    echo -e "${BLUE}[$(date +'%Y-%m-%d %H:%M:%S')] INFO: $1${NC}"
-}
-
-log() {
-    echo -e "${GREEN}[$(date +'%Y-%m-%d %H:%M:%S')] INFO: $1${NC}"
-}
 
 # Banner
 show_banner() {
@@ -393,7 +369,7 @@ parse_args() {
 }
 
 # Handle interrupts gracefully
-trap 'echo -e "\n${RED}Configuration interrupted${NC}"; exit 1' INT TERM
+trap 'warn "\nConfiguration interrupted"; exit 1' INT TERM
 
 # Main execution
 parse_args "$@"
