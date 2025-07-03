@@ -77,7 +77,7 @@ download_runner() {
     log "Latest runner version: $RUNNER_VERSION"
     
     # Create runner directory
-    sudo mkdir -p /home/github-runner/actions-runner
+    sudo -u github-runner mkdir -p /home/github-runner/actions-runner
     cd /home/github-runner/actions-runner
     
     # Download runner
