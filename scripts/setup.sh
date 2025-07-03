@@ -73,7 +73,7 @@ install_packages() {
     if [ ${#to_install[@]} -gt 0 ]; then
         log "Installing missing packages: ${to_install[*]}"
         sudo apt-get update
-        sudo apt-get install -y "${to_install[@]}"
+        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y "${to_install[@]}"
     else
         log "All required packages are already installed."
     fi
