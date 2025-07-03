@@ -250,8 +250,7 @@ show_summary() {
 main() {
     show_banner
 
-    # Ensure setup.sh is run to install dependencies
-    "$SCRIPT_DIR/setup.sh"
+    info "Before running this configuration, ensure you have run 'bldr-setup' to install all dependencies."
 
     info "Starting interactive configuration..."
     echo ""

@@ -10,8 +10,7 @@ done
 SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 source "$SCRIPT_DIR/logging.sh"
 
-# Ensure setup.sh is run first to install all dependencies
-"$SCRIPT_DIR/setup.sh"
+info "Before registering the runner, ensure you have run 'bldr-setup' to install all dependencies."
 
 # Log all commands and their output to a file in the current working directory
 LOGFILE="$(pwd)/register-runner.log"

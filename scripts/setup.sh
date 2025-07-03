@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# This script is intended to be symlinked as 'bldr-setup' and run by the user before other bldr commands.
+# Example: ln -sf /path/to/bldr/scripts/setup.sh ~/.local/bin/bldr-setup
+# Usage: bldr-setup
+
 # Robustly resolve the directory of the actual script, even if called via symlink
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do
@@ -245,6 +249,20 @@ create_uninstall_symlink() {
     fi
 }
 
+# At the end of setup.sh, create a symlink to itself as bldr-setup in ~/.local/bin if not present
+create_bldr_setup_symlink() {
+    local scripts_dir="$HOME/.local/bin"
+    mkdir -p "$scripts_dir"
+    local symlink="$scripts_dir/bldr-setup"
+    if [[ ! -L "$symlink" ]]; then
+        ln -sf "$SCRIPT_DIR/setup.sh" "$symlink"
+        log "Created symlink: $symlink -> $SCRIPT_DIR/setup.sh"
+    fi
+    if ! echo "$PATH" | grep -q "$scripts_dir"; then
+        warn "$scripts_dir is not in your PATH. Add it to your shell profile to use bldr-setup globally."
+    fi
+}
+
 # Main setup function
 main() {
     log "Starting GitHub Actions Runner setup..."
@@ -262,6 +280,7 @@ main() {
     setup_environment
     setup_systemd_service
     create_uninstall_symlink
+    create_bldr_setup_symlink
     
     log "Setup completed successfully!"
     log "Next steps:"

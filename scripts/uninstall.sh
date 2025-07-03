@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# This script is intended to be symlinked as 'bldr-uninstall' for user convenience.
+# Example: ln -sf /path/to/bldr/scripts/uninstall.sh ~/.local/bin/bldr-uninstall
+# Usage: bldr-uninstall
+
 # Robustly resolve the directory of the actual script, even if called via symlink
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do
