@@ -160,7 +160,6 @@ configure_github() {
         echo ""
         
         if [[ -f "scripts/github-token.sh" ]]; then
-            local generated_token
             generated_token=$(./scripts/github-token.sh --name "bldr-runner-$(hostname)" --scopes "repo,admin:org,workflow" --expiry "90d")
             
             if [[ $? -eq 0 ]] && [[ -n "$generated_token" ]]; then
