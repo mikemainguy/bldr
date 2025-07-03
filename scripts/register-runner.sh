@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Log all output to a file in the current working directory
+LOGFILE="$(pwd)/register-runner.log"
+exec > >(tee -a "$LOGFILE") 2>&1
+
 # GitHub Actions Runner Registration Script
 # This script registers a self-hosted runner with GitHub
 
