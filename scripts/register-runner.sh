@@ -133,8 +133,14 @@ download_runner() {
     # Create runner directory
     sudo -u github-runner mkdir -p /home/github-runner/actions-runner
     
-    # Download runner
-    sudo -u github-runner curl -L -O  "$DOWNLOAD_URL"
+    # Download runner to current directory first (where regular user has permissions)
+    log "Downloading runner to temporary location..."
+    curl -L -O "$DOWNLOAD_URL"
+    
+    # Move the file to the runner directory with proper permissions
+    log "Moving runner to final location..."
+    sudo mv actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz /home/github-runner/actions-runner/
+    sudo chown github-runner:github-runner /home/github-runner/actions-runner/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz
     # Check if the file is a valid gzip archive
     if ! sudo -u github-runner file actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz | grep -q 'gzip compressed data'; then
         echo "Download failed or file is not a valid archive. Contents:"
