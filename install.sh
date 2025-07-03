@@ -418,10 +418,6 @@ setup_shell_integration() {
         echo "    bldr-token      - Generate GitHub Personal Access Tokens"
         echo "  Changes will take effect in new shell sessions"
         
-    else
-        warn "Configure script not found at $configure_script"
-        return 1
-    fi
 }
 
 # Ask user if they want to configure now
