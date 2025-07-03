@@ -54,16 +54,17 @@ validate_env_vars() {
     log "Environment variables validated successfully."
 }
 
-# Fetch registration token using gh CLI
+# Fetch registration token using PAT and curl
 fetch_registration_token() {
-    log "Fetching runner registration token using gh CLI..."
-    if ! command -v gh &> /dev/null; then
-        error "GitHub CLI (gh) is not installed. Please install it and run 'gh auth login' first."
+    log "Fetching runner registration token using curl and GITHUB_TOKEN..."
+    if [[ -z "$GITHUB_TOKEN" ]]; then
+        error "GITHUB_TOKEN is not set. Please add it to your .env file."
     fi
-    REG_TOKEN=$(gh api --method POST -H "Accept: application/vnd.github+json" \
-        /repos/${GITHUB_REPOSITORY}/actions/runners/registration-token --jq .token)
-    if [[ -z "$REG_TOKEN" ]]; then
-        error "Failed to fetch registration token. Ensure you are authenticated with 'gh auth login' and have access to the repository."
+    REG_TOKEN=$(curl -s -X POST -H "Authorization: token $GITHUB_TOKEN" \
+        -H "Accept: application/vnd.github+json" \
+        https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runners/registration-token | jq -r .token)
+    if [[ -z "$REG_TOKEN" || "$REG_TOKEN" == "null" ]]; then
+        error "Failed to fetch registration token. Ensure your GITHUB_TOKEN is valid and has the correct permissions."
     fi
     log "Registration token fetched successfully."
 }
@@ -71,17 +72,11 @@ fetch_registration_token() {
 # Download runner
 download_runner() {
     log "Downloading GitHub Actions runner..."
-    # Get latest runner version using gh CLI
-    if ! command -v gh &> /dev/null; then
-        error "GitHub CLI (gh) is not installed. Please install it and run 'gh auth login' first."
-    fi
-    RUNNER_VERSION=$(gh release view --repo actions/runner --json tagName -q .tagName)
+    # Get latest runner version using GitHub API
+    RUNNER_VERSION=$(curl -s https://api.github.com/repos/actions/runner/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
     log "Latest runner version: $RUNNER_VERSION"
-    # Get download URL for Linux x64
-    DOWNLOAD_URL=$(gh release view $RUNNER_VERSION --repo actions/runner --json assets -q '.assets[].url' | grep 'linux-x64' | head -n1)
-    if [[ -z "$DOWNLOAD_URL" ]]; then
-        error "Failed to get download URL for runner version $RUNNER_VERSION."
-    fi
+    # Construct download URL for Linux x64
+    DOWNLOAD_URL="https://github.com/actions/runner/releases/download/${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz"
     log "Download URL: $DOWNLOAD_URL"
     # Create runner directory
     sudo -u github-runner mkdir -p /home/github-runner/actions-runner
