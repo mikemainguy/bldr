@@ -39,7 +39,6 @@ check_env_file() {
 # Validate required environment variables
 validate_env_vars() {
     local required_vars=(
-        "GITHUB_TOKEN"
         "GITHUB_REPOSITORY"
         "RUNNER_NAME"
         "RUNNER_LABELS"
@@ -53,6 +52,20 @@ validate_env_vars() {
     done
     
     log "Environment variables validated successfully."
+}
+
+# Fetch registration token using gh CLI
+fetch_registration_token() {
+    log "Fetching runner registration token using gh CLI..."
+    if ! command -v gh &> /dev/null; then
+        error "GitHub CLI (gh) is not installed. Please install it and run 'gh auth login' first."
+    fi
+    REG_TOKEN=$(gh api --method POST -H "Accept: application/vnd.github+json" \
+        /repos/${GITHUB_REPOSITORY}/actions/runners/registration-token --jq .token)
+    if [[ -z "$REG_TOKEN" ]]; then
+        error "Failed to fetch registration token. Ensure you are authenticated with 'gh auth login' and have access to the repository."
+    fi
+    log "Registration token fetched successfully."
 }
 
 # Download runner
@@ -82,19 +95,17 @@ download_runner() {
 # Configure runner
 configure_runner() {
     log "Configuring GitHub Actions runner..."
-    
     cd /home/github-runner/actions-runner
-    
+    fetch_registration_token
     # Configure the runner
     sudo -u github-runner ./config.sh \
         --url "https://github.com/${GITHUB_REPOSITORY}" \
-        --token "${GITHUB_TOKEN}" \
+        --token "$REG_TOKEN" \
         --name "${RUNNER_NAME}" \
         --labels "${RUNNER_LABELS}" \
         --work "${RUNNER_WORK_DIRECTORY}" \
         --replace \
         --unattended
-    
     log "Runner configured successfully."
 }
 
@@ -113,11 +124,9 @@ install_runner_service() {
 # Setup runner environment
 setup_runner_env() {
     log "Setting up runner environment..."
-    
     # Create runner environment file
     sudo tee /home/github-runner/actions-runner/.env > /dev/null <<EOF
 # GitHub Actions Runner Environment
-GITHUB_TOKEN=${GITHUB_TOKEN}
 GITHUB_REPOSITORY=${GITHUB_REPOSITORY}
 RUNNER_NAME=${RUNNER_NAME}
 RUNNER_LABELS=${RUNNER_LABELS}
@@ -130,11 +139,9 @@ DOCKER_REGISTRY=${DOCKER_REGISTRY}
 DOCKER_USERNAME=${DOCKER_USERNAME}
 DOCKER_PASSWORD=${DOCKER_PASSWORD}
 EOF
-    
     # Set proper permissions
     sudo chown github-runner:github-runner /home/github-runner/actions-runner/.env
     sudo chmod 600 /home/github-runner/actions-runner/.env
-    
     log "Runner environment configured successfully."
 }
 
@@ -153,12 +160,10 @@ setup_runner_tools() {
 # Test runner connection
 test_runner_connection() {
     log "Testing runner connection..."
-    
-    # Check if runner can connect to GitHub
-    if curl -s -H "Authorization: token ${GITHUB_TOKEN}" "https://api.github.com/repos/${GITHUB_REPOSITORY}" > /dev/null; then
+    if gh api repos/${GITHUB_REPOSITORY} > /dev/null 2>&1; then
         log "Runner connection test successful."
     else
-        warn "Runner connection test failed. Please check your GitHub token and repository access."
+        warn "Runner connection test failed. Please check your gh authentication and repository access."
     fi
 }
 
