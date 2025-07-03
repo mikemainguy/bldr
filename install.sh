@@ -364,26 +364,26 @@ setup_shell_integration() {
     local configure_symlink="$scripts_dir/bldr-configure"
     local token_symlink="$scripts_dir/bldr-token"
     
+    local found_any=0
     if [[ -f "$configure_script" ]]; then
-        # Remove existing symlink if it exists
         if [[ -L "$configure_symlink" ]]; then
             rm "$configure_symlink"
         fi
-        
-        # Create new symlink
         ln -sf "$configure_script" "$configure_symlink"
         log "Created symlink: $configure_symlink -> $configure_script"
+        found_any=1
     fi
-    
     if [[ -f "$token_script" ]]; then
-        # Remove existing symlink if it exists
         if [[ -L "$token_symlink" ]]; then
             rm "$token_symlink"
         fi
-        
-        # Create new symlink
         ln -sf "$token_script" "$token_symlink"
         log "Created symlink: $token_symlink -> $token_script"
+        found_any=1
+    fi
+    if [[ $found_any -eq 0 ]]; then
+        warn "Neither configure nor token script found in $INSTALL_DIR/bldr/scripts"
+        return 1
     fi
         
         # Add to PATH if not already there
