@@ -616,4 +616,19 @@ main() {
 
 trap 'echo -e "\n${RED}Installation interrupted${NC}"; exit 1' INT TERM
 
+# Check if .bldr directory exists and offer to update
+if [ -d "$HOME/.bldr" ]; then
+    echo "The .bldr directory already exists at $HOME/.bldr."
+    read -p "Would you like to check for updates and install them? (Y/n): " update_bldr
+    if [[ ! $update_bldr =~ ^[Nn]$ ]]; then
+        echo "Checking for updates in $HOME/.bldr..."
+        cd "$HOME/.bldr"
+        git pull
+        cd - > /dev/null
+        echo "Update complete."
+    else
+        echo "Skipping update."
+    fi
+fi
+
 main "$@" 
