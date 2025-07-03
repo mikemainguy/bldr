@@ -307,13 +307,14 @@ main() {
     read -p "Would you like to automatically register the runner now? (Y/n): " auto_register
     if [[ ! $auto_register =~ ^[Nn]$ ]]; then
         if [[ -x "./scripts/register-runner.sh" ]]; then
-            echo -e "${CYAN}Registering the runner...${NC}"
-            ./scripts/register-runner.sh
+            echo -e "${CYAN}Registering the runner (using sudo)...${NC}"
+            echo -e "${YELLOW}Note: sudo will be used to ensure proper permissions for runner registration.${NC}"
+            sudo ./scripts/register-runner.sh
         else
-            echo -e "${RED}register-runner.sh not found or not executable. Please run it manually.${NC}"
+            echo -e "${RED}register-runner.sh not found or not executable. Please run it manually with sudo.${NC}"
         fi
     else
-        echo -e "${YELLOW}You can register the runner later by running: ./scripts/register-runner.sh${NC}"
+        echo -e "${YELLOW}You can register the runner later by running: sudo ./scripts/register-runner.sh${NC}"
     fi
     info "Next steps:"
     echo "  1. Review the generated .env file"
