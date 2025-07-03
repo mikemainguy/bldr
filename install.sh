@@ -611,6 +611,15 @@ main() {
     setup_environment
     make_scripts_executable
     setup_shell_integration
+    # Prompt to run setup.sh automatically
+    echo ""
+    read -p "Would you like to run setup.sh now to install dependencies and configure the system? (Y/n): " run_setup
+    if [[ ! $run_setup =~ ^[Nn]$ ]]; then
+        log "Running setup.sh to install dependencies and configure the system..."
+        sudo ./scripts/setup.sh
+    else
+        echo "You can run it later with: sudo ./scripts/setup.sh"
+    fi
     show_next_steps
 }
 
