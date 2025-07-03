@@ -78,7 +78,6 @@ install_packages() {
         rsync \
         openssh-server \
         nginx \
-        certbot \
         python3-certbot-nginx
     
     log "Required packages installed successfully."
@@ -155,7 +154,7 @@ setup_directories() {
     sudo chown -R github-runner:github-runner /var/backups
     
     # Create config directories
-    mkdir -p config/{nginx,ssl,runner}
+    mkdir -p config/runner
     mkdir -p scripts
     mkdir -p workflows
     mkdir -p docs
@@ -229,13 +228,6 @@ port = ssh
 filter = sshd
 logpath = /var/log/auth.log
 maxretry = 3
-
-[nginx-http-auth]
-enabled = true
-filter = nginx-http-auth
-port = http,https
-logpath = /var/log/nginx/error.log
-maxretry = 3
 EOF
     
     # Restart fail2ban
@@ -249,20 +241,7 @@ EOF
 setup_log_rotation() {
     log "Setting up log rotation..."
     
-    sudo tee /etc/logrotate.d/github-runner > /dev/null <<EOF
-/var/log/github-runner/*.log {
-    daily
-    missingok
-    rotate 30
-    compress
-    delaycompress
-    notifempty
-    create 644 github-runner github-runner
-    postrotate
-        systemctl reload nginx > /dev/null 2>&1 || true
-    endscript
-}
-EOF
+    # (Logrotate config removed)
     
     log "Log rotation configured successfully."
 }

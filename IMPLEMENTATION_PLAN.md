@@ -41,7 +41,6 @@ Internet
     ├── Nginx (80/443)
     │   ├── GitHub Runner Dashboard
     │   ├── Grafana (3000)
-    │   ├── Prometheus (9090)
     │   └── Application Endpoints
     │
     ├── SSH (22)
@@ -232,6 +231,7 @@ PRODUCTION_PATH=/var/www/apps
 # Domain Configuration
 DOMAIN_NAME=your-app-domain.com
 SSL_EMAIL=admin@your-domain.com
+SSL_STAGING=false
 
 # Docker Configuration
 DOCKER_REGISTRY=your-registry.com

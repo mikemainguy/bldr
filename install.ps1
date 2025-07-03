@@ -219,22 +219,11 @@ PRODUCTION_PORT=22
 PRODUCTION_PATH=/var/www/apps
 PRODUCTION_BACKUP_PATH=/var/backups
 
-# Domain and SSL Configuration
-DOMAIN_NAME=your-app-domain.com
-SSL_EMAIL=admin@your-domain.com
-SSL_STAGING=false
-
 # Docker Configuration
 DOCKER_REGISTRY=your-registry.com
 DOCKER_USERNAME=your-docker-username
 DOCKER_PASSWORD=your-docker-password
 DOCKER_IMAGE_PREFIX=your-app
-
-# Monitoring Configuration
-PROMETHEUS_PORT=9090
-GRAFANA_PORT=3000
-GRAFANA_ADMIN_USER=admin
-GRAFANA_ADMIN_PASSWORD=secure_password_here
 
 # Logging Configuration
 LOG_LEVEL=info
@@ -249,8 +238,6 @@ BACKUP_PATH=/var/backups
 # Security Configuration
 FIREWALL_ENABLED=true
 SSH_KEY_PATH=/home/github-runner/.ssh/id_rsa
-SSL_CERT_PATH=/etc/ssl/certs
-SSL_KEY_PATH=/etc/ssl/private
 
 # Resource Limits
 RUNNER_MAX_CONCURRENT_JOBS=4

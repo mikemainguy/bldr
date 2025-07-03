@@ -261,16 +261,10 @@ PRODUCTION_PORT=22
 PRODUCTION_PATH=/var/www/apps
 PRODUCTION_BACKUP_PATH=/var/backups
 DOMAIN_NAME=your-app-domain.com
-SSL_EMAIL=admin@your-domain.com
-SSL_STAGING=false
 DOCKER_REGISTRY=your-registry.com
 DOCKER_USERNAME=your-docker-username
 DOCKER_PASSWORD=your-docker-password
 DOCKER_IMAGE_PREFIX=your-app
-PROMETHEUS_PORT=9090
-GRAFANA_PORT=3000
-GRAFANA_ADMIN_USER=admin
-GRAFANA_ADMIN_PASSWORD=secure_password_here
 LOG_LEVEL=info
 LOG_RETENTION_DAYS=30
 LOG_PATH=/var/log/github-runner
@@ -279,8 +273,6 @@ BACKUP_SCHEDULE="0 2 * * *"
 BACKUP_PATH=/var/backups
 FIREWALL_ENABLED=true
 SSH_KEY_PATH=/home/github-runner/.ssh/id_rsa
-SSL_CERT_PATH=/etc/ssl/certs
-SSL_KEY_PATH=/etc/ssl/private
 RUNNER_MAX_CONCURRENT_JOBS=4
 RUNNER_MEMORY_LIMIT=4g
 RUNNER_CPU_LIMIT=2
@@ -417,7 +409,6 @@ setup_shell_integration() {
         echo "    bldr-configure  - Configure your environment"
         echo "    bldr-token      - Generate GitHub Personal Access Tokens"
         echo "  Changes will take effect in new shell sessions"
-        
 }
 
 # Ask user if they want to configure now

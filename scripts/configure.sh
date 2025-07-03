@@ -241,31 +241,6 @@ configure_monitoring() {
     echo -e "${CYAN}📊 Monitoring Configuration${NC}"
     echo "================================="
     
-    prompt_with_validation \
-        "Enter Prometheus port" \
-        "PROMETHEUS_PORT" \
-        "validate_port" \
-        "9090" \
-        "Port for Prometheus metrics server"
-    
-    prompt_with_validation \
-        "Enter Grafana port" \
-        "GRAFANA_PORT" \
-        "validate_port" \
-        "3000" \
-        "Port for Grafana dashboard"
-    
-    read -p "Enter Grafana admin username [admin]: " GRAFANA_ADMIN_USER
-    GRAFANA_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
-    
-    read -s -p "Enter Grafana admin password: " GRAFANA_ADMIN_PASSWORD
-    echo ""
-    
-    if [[ -z "$GRAFANA_ADMIN_PASSWORD" ]]; then
-        GRAFANA_ADMIN_PASSWORD="secure_password_here"
-        warn "Using default password. Please change it after setup."
-    fi
-    
     echo ""
 }
 
@@ -379,10 +354,6 @@ DOCKER_PASSWORD=$DOCKER_PASSWORD
 DOCKER_IMAGE_PREFIX=$DOCKER_IMAGE_PREFIX
 
 # Monitoring Configuration
-PROMETHEUS_PORT=$PROMETHEUS_PORT
-GRAFANA_PORT=$GRAFANA_PORT
-GRAFANA_ADMIN_USER=$GRAFANA_ADMIN_USER
-GRAFANA_ADMIN_PASSWORD=$GRAFANA_ADMIN_PASSWORD
 
 # Logging and Backup Configuration
 LOG_LEVEL=$LOG_LEVEL
@@ -438,11 +409,6 @@ show_summary() {
     echo "  Domain: $DOMAIN_NAME"
     echo "  Email: $SSL_EMAIL"
     echo "  Staging: $SSL_STAGING"
-    echo ""
-    echo -e "${GREEN}Monitoring:${NC}"
-    echo "  Prometheus Port: $PROMETHEUS_PORT"
-    echo "  Grafana Port: $GRAFANA_PORT"
-    echo "  Grafana User: $GRAFANA_ADMIN_USER"
     echo ""
     echo -e "${GREEN}Advanced:${NC}"
     echo "  Log Level: $LOG_LEVEL"

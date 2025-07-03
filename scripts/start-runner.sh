@@ -92,117 +92,6 @@ check_service_status() {
     fi
 }
 
-# Setup monitoring
-setup_monitoring() {
-    log "Setting up monitoring..."
-    
-    # Create Grafana dashboard configuration
-    mkdir -p config/grafana/provisioning/dashboards
-    mkdir -p config/grafana/provisioning/datasources
-    mkdir -p config/grafana/dashboards
-    
-    # Create Prometheus datasource
-    cat > config/grafana/provisioning/datasources/prometheus.yml <<EOF
-apiVersion: 1
-
-datasources:
-  - name: Prometheus
-    type: prometheus
-    access: proxy
-    url: http://prometheus:9090
-    isDefault: true
-EOF
-    
-    # Create GitHub Runner dashboard
-    cat > config/grafana/dashboards/github-runner.json <<EOF
-{
-  "dashboard": {
-    "id": null,
-    "title": "GitHub Actions Runner",
-    "tags": ["github", "actions", "runner"],
-    "timezone": "browser",
-    "panels": [
-      {
-        "id": 1,
-        "title": "Runner Status",
-        "type": "stat",
-        "targets": [
-          {
-            "expr": "up{job=\"github-runner\"}",
-            "legendFormat": "Runner Status"
-          }
-        ]
-      },
-      {
-        "id": 2,
-        "title": "System Resources",
-        "type": "graph",
-        "targets": [
-          {
-            "expr": "100 - (avg by (instance) (irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
-            "legendFormat": "CPU Usage %"
-          },
-          {
-            "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
-            "legendFormat": "Memory Usage %"
-          }
-        ]
-      }
-    ]
-  }
-}
-EOF
-    
-    log "Monitoring setup completed."
-}
-
-# Setup SSL certificates
-setup_ssl() {
-    if [[ -n "${DOMAIN_NAME}" && "${DOMAIN_NAME}" != "your-app-domain.com" ]]; then
-        log "Setting up SSL certificates for ${DOMAIN_NAME}..."
-        
-        # Create Nginx configuration for SSL
-        cat > config/nginx/conf.d/default.conf <<EOF
-server {
-    listen 80;
-    server_name ${DOMAIN_NAME};
-    
-    location /.well-known/acme-challenge/ {
-        root /var/www/html;
-    }
-    
-    location / {
-        return 301 https://\$server_name\$request_uri;
-    }
-}
-
-server {
-    listen 443 ssl http2;
-    server_name ${DOMAIN_NAME};
-    
-    ssl_certificate /etc/ssl/certs/${DOMAIN_NAME}.crt;
-    ssl_certificate_key /etc/ssl/private/${DOMAIN_NAME}.key;
-    
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384;
-    ssl_prefer_server_ciphers off;
-    
-    location / {
-        proxy_pass http://github-runner:8080;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-    }
-}
-EOF
-        
-        log "SSL configuration created. Run certbot to obtain certificates."
-    else
-        log "Skipping SSL setup - no domain configured."
-    fi
-}
-
 # Setup backup schedule
 setup_backup_schedule() {
     log "Setting up backup schedule..."
@@ -225,12 +114,6 @@ mkdir -p "${BACKUP_DIR}"
 if docker ps | grep -q postgres; then
     echo "Backing up PostgreSQL database..."
     docker exec postgres pg_dump -U ${DB_USER} ${DB_NAME} > "${BACKUP_DIR}/postgres_${BACKUP_DATE}.sql"
-fi
-
-# Backup Grafana data
-if docker ps | grep -q grafana; then
-    echo "Backing up Grafana data..."
-    docker exec grafana tar czf - /var/lib/grafana > "${BACKUP_DIR}/grafana_${BACKUP_DATE}.tar.gz"
 fi
 
 # Backup runner configuration
@@ -283,8 +166,6 @@ main() {
     check_docker
     start_docker_services
     start_github_runner
-    setup_monitoring
-    setup_ssl
     setup_backup_schedule
     check_service_status
     display_startup_info

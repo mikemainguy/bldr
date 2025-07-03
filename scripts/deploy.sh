@@ -249,44 +249,6 @@ EOF
     log "Deployment completed successfully."
 }
 
-# Setup SSL certificate
-setup_ssl() {
-    if [[ -n "$DOMAIN_NAME" && "$DOMAIN_NAME" != "your-app-domain.com" ]]; then
-        log "Setting up SSL certificate for $DOMAIN_NAME..."
-        
-        # Create SSL setup script
-        cat > /tmp/ssl_setup.sh <<EOF
-#!/bin/bash
-set -e
-
-DOMAIN_NAME="$DOMAIN_NAME"
-SSL_EMAIL="$SSL_EMAIL"
-
-# Install certbot if not installed
-if ! command -v certbot &> /dev/null; then
-    sudo apt update
-    sudo apt install -y certbot python3-certbot-nginx
-fi
-
-# Obtain SSL certificate
-sudo certbot --nginx -d \${DOMAIN_NAME} --email \${SSL_EMAIL} --agree-tos --non-interactive
-
-# Setup auto-renewal
-sudo crontab -l 2>/dev/null | { cat; echo "0 12 * * * /usr/bin/certbot renew --quiet"; } | sudo crontab -
-EOF
-        
-        # Execute SSL setup on production server
-        scp /tmp/ssl_setup.sh "${PRODUCTION_USER}@${PRODUCTION_HOST}:/tmp/"
-        ssh "${PRODUCTION_USER}@${PRODUCTION_HOST}" "chmod +x /tmp/ssl_setup.sh && /tmp/ssl_setup.sh"
-        
-        # Clean up
-        rm /tmp/ssl_setup.sh
-        ssh "${PRODUCTION_USER}@${PRODUCTION_HOST}" "rm /tmp/ssl_setup.sh"
-        
-        log "SSL certificate setup completed."
-    fi
-}
-
 # Create backup
 create_backup() {
     log "Creating backup of current deployment..."
@@ -351,7 +313,6 @@ main() {
     build_docker_image
     push_docker_image
     deploy_to_production
-    setup_ssl
     send_notifications
     
     log "Deployment process completed successfully!"
