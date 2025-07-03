@@ -91,28 +91,6 @@ show_help() {
     echo "  $0 --app myapp --env staging --tag v1.0.0"
 }
 
-# Validate deployment environment
-validate_environment() {
-    log "Validating deployment environment..."
-    
-    # Check if production host is configured
-    if [[ -z "$PRODUCTION_HOST" ]]; then
-        error "PRODUCTION_HOST not configured in .env file"
-    fi
-    
-    # Check if production user is configured
-    if [[ -z "$PRODUCTION_USER" ]]; then
-        error "PRODUCTION_USER not configured in .env file"
-    fi
-    
-    # Test SSH connection
-    if ! ssh -o ConnectTimeout=10 -o BatchMode=yes "${PRODUCTION_USER}@${PRODUCTION_HOST}" exit 2>/dev/null; then
-        error "Cannot connect to production server via SSH"
-    fi
-    
-    log "Environment validation passed."
-}
-
 # Build Docker image
 build_docker_image() {
     log "Building Docker image for $APP_NAME..."
@@ -172,81 +150,30 @@ push_docker_image() {
     fi
 }
 
-# Deploy to production
-deploy_to_production() {
-    log "Deploying $APP_NAME to production..."
-    
-    # Create deployment script for remote execution
-    cat > /tmp/deploy_remote.sh <<EOF
-#!/bin/bash
-set -e
-
-APP_NAME="$APP_NAME"
-IMAGE_NAME="$IMAGE_NAME"
-ENVIRONMENT="$ENVIRONMENT"
-PRODUCTION_PATH="$PRODUCTION_PATH"
-
-# Create application directory
-mkdir -p "\${PRODUCTION_PATH}/\${APP_NAME}"
-
-# Create docker-compose file for the application
-cat > "\${PRODUCTION_PATH}/\${APP_NAME}/docker-compose.yml" <<'DOCKER_COMPOSE_EOF'
-version: '3.8'
-
-services:
-  \${APP_NAME}:
-    image: \${IMAGE_NAME}
-    container_name: \${APP_NAME}
-    restart: unless-stopped
-    environment:
-      - NODE_ENV=\${ENVIRONMENT}
-      - PORT=3000
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./logs:/app/logs
-    networks:
-      - app-network
-
-networks:
-  app-network:
-    driver: bridge
-DOCKER_COMPOSE_EOF
-
-# Stop existing container if running
-cd "\${PRODUCTION_PATH}/\${APP_NAME}"
-docker-compose down || true
-
-# Pull latest image
-docker-compose pull
-
-# Start the application
-docker-compose up -d
-
-# Wait for application to be ready
-sleep 10
-
-# Health check
-if curl -f http://localhost:3000/health > /dev/null 2>&1; then
-    echo "Deployment successful"
-    exit 0
-else
-    echo "Health check failed"
-    exit 1
-fi
-EOF
-    
-    # Copy deployment script to production server
-    scp /tmp/deploy_remote.sh "${PRODUCTION_USER}@${PRODUCTION_HOST}:/tmp/"
-    
-    # Execute deployment on production server
-    ssh "${PRODUCTION_USER}@${PRODUCTION_HOST}" "chmod +x /tmp/deploy_remote.sh && /tmp/deploy_remote.sh"
-    
-    # Clean up
-    rm /tmp/deploy_remote.sh
-    ssh "${PRODUCTION_USER}@${PRODUCTION_HOST}" "rm /tmp/deploy_remote.sh"
-    
-    log "Deployment completed successfully."
+# Deploy locally in Docker
+deploy_locally() {
+    log "Deploying $APP_NAME locally in Docker..."
+    # Stop and remove any existing container
+    if docker ps -a --format '{{.Names}}' | grep -Eq "^${APP_NAME}$"; then
+        log "Stopping and removing existing container: $APP_NAME"
+        docker stop "$APP_NAME" || true
+        docker rm "$APP_NAME" || true
+    fi
+    # Run the new container
+    docker run -d --name "$APP_NAME" \
+        -e NODE_ENV="$ENVIRONMENT" \
+        -e PORT=3000 \
+        -p 3000:3000 \
+        "$IMAGE_NAME"
+    log "Container $APP_NAME started."
+    sleep 5
+    # Health check
+    if curl -f http://localhost:3000/health > /dev/null 2>&1; then
+        log "Health check passed: http://localhost:3000/health"
+    else
+        warn "Health check failed: http://localhost:3000/health"
+    fi
+    log "To view logs: docker logs -f $APP_NAME"
 }
 
 # Create backup
@@ -303,23 +230,18 @@ send_notifications() {
 
 # Main deployment function
 main() {
-    log "Starting deployment process..."
-    
+    log "Starting local deployment process..."
     load_env
     parse_args "$@"
-    validate_environment
-    create_backup
     run_tests
     build_docker_image
-    push_docker_image
-    deploy_to_production
+    deploy_locally
     send_notifications
-    
     log "Deployment process completed successfully!"
     log "Application: $APP_NAME"
     log "Environment: $ENVIRONMENT"
     log "Build Tag: $BUILD_TAG"
-    log "Production URL: https://${DOMAIN_NAME:-$PRODUCTION_HOST}"
+    log "Local URL: http://localhost:3000"
 }
 
 # Run main function

@@ -223,11 +223,6 @@ Key configuration variables in `.env`:
 GITHUB_REPOSITORY=owner/repository-name
 RUNNER_LABELS=ubuntu,nodejs,self-hosted
 
-# Production Configuration
-PRODUCTION_HOST=your-production-server.com
-PRODUCTION_USER=deploy
-PRODUCTION_PATH=/var/www/apps
-
 # Domain Configuration
 DOMAIN_NAME=your-app-domain.com
 SSL_EMAIL=admin@your-domain.com
@@ -252,8 +247,6 @@ Required secrets in GitHub repository:
 - `DOCKER_USERNAME`: Docker registry username
 - `DOCKER_PASSWORD`: Docker registry password
 - `DOMAIN_NAME`: Domain name for SSL
-- `PRODUCTION_HOST`: Production server hostname
-- `PRODUCTION_USER`: SSH user for production
 - `SLACK_WEBHOOK_URL`: Slack notifications (optional)
 - `SNYK_TOKEN`: Security scanning (optional)
 
@@ -359,6 +352,12 @@ Required secrets in GitHub repository:
 5. Automated testing
 6. Merge to develop
 
+### Local Deployment
+1. Build Docker image
+2. Run container locally
+3. Health check at http://localhost:3000/health
+4. View logs with docker logs
+
 ### Staging Deployment
 1. Push to develop branch
 2. Automated testing
@@ -378,10 +377,9 @@ Required secrets in GitHub repository:
 ## Maintenance Procedures
 
 ### Regular Maintenance
-- Weekly security updates
-- Monthly system updates
-- Quarterly performance reviews
-- Annual security audits
+- Update dependencies as needed
+- Monitor local Docker container health
+- Review logs for errors
 
 ### Monitoring Maintenance
 - Daily log review
@@ -398,9 +396,8 @@ Required secrets in GitHub repository:
 ## Risk Assessment
 
 ### Technical Risks
-- **Runner connectivity issues**: Mitigated by monitoring and alerting
-- **Docker daemon failures**: Mitigated by service monitoring
-- **SSL certificate expiration**: Mitigated by automatic renewal
+- **Runner connectivity issues**: Mitigated by local health checks
+- **Docker daemon failures**: Mitigated by checking Docker status
 - **Disk space exhaustion**: Mitigated by monitoring and cleanup
 
 ### Security Risks

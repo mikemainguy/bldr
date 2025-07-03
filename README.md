@@ -208,8 +208,8 @@ The runner can be configured for:
 3. **Local Runner**: Self-hosted runner picks up the job
 4. **Build & Test**: Application is built and tested
 5. **Docker Build**: Docker image is created and tagged
-6. **Deploy**: Application is deployed to production
-7. **Health Check**: Deployment is verified
+6. **Deploy**: Application is deployed locally in Docker
+7. **Health Check**: Deployment is verified at http://localhost:3000/health
 8. **Notification**: Success/failure notifications sent
 
 ## Security Considerations
@@ -226,7 +226,7 @@ The runner can be configured for:
 Common issues and solutions:
 
 1. **Runner not connecting**: Check network connectivity and GitHub CLI authentication
-2. **Deployment failures**: Verify SSH access and production server status
+2. **Deployment failures**: Check Docker status and local container logs
 3. **SSL certificate issues**: Check Let's Encrypt configuration
 4. **Resource exhaustion**: Monitor system resources and adjust limits
 

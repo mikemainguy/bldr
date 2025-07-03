@@ -297,9 +297,7 @@ git push -u origin main
    - Ensure port 80 is accessible
 
 4. **Deployment failures**
-   - Check SSH key configuration
-   - Verify production server access
-   - Check Docker registry credentials
+   - Check Docker status and local container logs
 
 ### Useful Commands
 
@@ -355,3 +353,6 @@ For issues and questions:
 2. Review the logs in `/var/log/github-runner/`
 3. Check GitHub Actions runner documentation
 4. Create an issue in this repository 
+
+6. **Deploy**: Application is deployed locally in Docker
+7. **Health Check**: Deployment is verified at http://localhost:3000/health 
