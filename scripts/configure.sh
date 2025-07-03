@@ -171,11 +171,13 @@ configure_github() {
         
         if [[ -f "scripts/github-token.sh" ]]; then
             generated_token=$(./scripts/github-token.sh --name "bldr-runner-$(hostname)" --scopes "repo,admin:org,workflow" --expiry "90d")
-            
             if [[ $? -eq 0 ]] && [[ -n "$generated_token" ]]; then
                 GITHUB_TOKEN="$generated_token"
+                echo -e "${GREEN}✅ Token generated automatically!${NC}"
+                echo -e "${YELLOW}Token starts with: ${GITHUB_TOKEN:0:6}...${NC}"
                 log "✅ Token generated automatically"
             else
+                echo -e "${RED}❌ Token generation failed. Please enter manually.${NC}"
                 warn "Automatic token generation failed, please enter manually"
                 prompt_with_validation \
                     "Enter your GitHub Personal Access Token" \
