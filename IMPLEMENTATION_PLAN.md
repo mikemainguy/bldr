@@ -9,30 +9,18 @@ This document outlines a comprehensive plan for implementing a GitHub Actions se
 ### Objectives
 - Deploy a self-hosted GitHub Actions runner on Ubuntu Linux
 - Enable automated Node.js application deployment
-- Implement comprehensive monitoring and logging
 - Ensure security best practices
-- Provide disaster recovery capabilities
 
 ### Success Criteria
 - Runner successfully processes GitHub Actions workflows
 - Automated deployment of Node.js applications
-- Monitoring dashboards accessible and functional
-- SSL certificates automatically managed
-- Backup and recovery procedures tested
 
 ## Architecture Overview
 
 ### System Components
 1. **GitHub Actions Runner**: Self-hosted runner agent
 2. **Docker Engine**: Containerization platform
-3. **Nginx**: Reverse proxy and SSL termination
-4. **Prometheus**: Metrics collection
-5. **Grafana**: Monitoring dashboards
-6. **Node Exporter**: System metrics
-7. **cAdvisor**: Container metrics
-8. **Redis**: Caching and session storage
-9. **PostgreSQL**: Database (optional)
-10. **Certbot**: SSL certificate management
+3. **cAdvisor**: Container metrics
 
 ### Network Architecture
 ```
@@ -57,25 +45,11 @@ Internet
 - [ ] Ubuntu server provisioning
 - [ ] System updates and security patches
 - [ ] Essential package installation
-- [ ] User and group creation
 
 #### 1.2 Docker Installation
 - [ ] Docker repository setup
 - [ ] Docker Engine installation
 - [ ] Docker Compose installation
-- [ ] User permissions configuration
-
-#### 1.3 Node.js Setup
-- [ ] NodeSource repository addition
-- [ ] Node.js 18.x installation
-- [ ] Global npm packages installation
-- [ ] Version verification
-
-#### 1.4 Security Configuration
-- [ ] Firewall (UFW) setup
-- [ ] Fail2ban configuration
-- [ ] SSH key generation
-- [ ] Access control setup
 
 ### Phase 2: Runner Installation (Week 2)
 
@@ -92,45 +66,12 @@ Internet
 - [ ] Service dependencies configuration
 
 
-### Phase 3: Deployment Pipeline (Week 3)
-
 #### 3.1 Workflow Configuration
 - [ ] GitHub Actions workflow creation
 - [ ] Repository secrets configuration
 - [ ] Branch protection rules
 - [ ] Environment protection setup
 
-#### 3.2 Deployment Scripts
-- [ ] Deployment script development
-- [ ] Docker image building
-- [ ] Production deployment automation
-- [ ] Health check implementation
-
-#### 3.3 SSL and Domain Setup
-- [ ] Domain DNS configuration
-- [ ] Let's Encrypt certificate setup
-- [ ] SSL auto-renewal configuration
-- [ ] HTTPS enforcement
-
-### Phase 4: Testing and Validation (Week 4)
-
-#### 4.1 Functional Testing
-- [ ] Runner connectivity testing
-- [ ] Workflow execution testing
-- [ ] Deployment pipeline testing
-- [ ] Monitoring dashboard validation
-
-#### 4.2 Security Testing
-- [ ] Vulnerability scanning
-- [ ] Penetration testing
-- [ ] Access control verification
-- [ ] SSL certificate validation
-
-#### 4.3 Performance Testing
-- [ ] Load testing
-- [ ] Resource utilization monitoring
-- [ ] Scalability testing
-- [ ] Backup and recovery testing
 
 ## Detailed Implementation Steps
 
