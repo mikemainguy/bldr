@@ -606,6 +606,13 @@ main() {
         echo "You can run it later with: sudo ./scripts/setup.sh"
     fi
     show_next_steps
+    # At the end of install.sh, run the symlink installer
+    if [ -f "scripts/install-links.sh" ]; then
+        echo "Creating bldr-* symlinks in ~/.local/bin..."
+        ./scripts/install-links.sh
+    else
+        echo "WARNING: scripts/install-links.sh not found. Please run it manually to create bldr-* commands."
+    fi
 }
 
 trap 'echo -e "\n${RED}Installation interrupted${NC}"; exit 1' INT TERM

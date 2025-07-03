@@ -38,55 +38,36 @@ This project provides a complete setup for running GitHub Actions self-hosted ru
 
 ## Quick Start
 
-### Option 1: One-Command Installation (Recommended)
-
-#### For Windows Users (GitBash):
-```bash
-curl -sSL https://raw.githubusercontent.com/mikemainguy/bldr/main/install.sh | bash
-```
-
-#### For Windows Users (PowerShell):
-```powershell
-irm https://raw.githubusercontent.com/mikemainguy/bldr/main/install.ps1 | iex
-```
-
-#### For Linux/macOS Users:
-```bash
-curl -sSL https://raw.githubusercontent.com/mikemainguy/bldr/main/install.sh | bash
-```
-
-### Option 2: Manual Installation
-
 1. **Clone this repository**:
    ```bash
    git clone https://github.com/mikemainguy/bldr.git
    cd bldr
    ```
 
-2. **Configure environment (Interactive)**:
+2. **Install bldr command symlinks**:
    ```bash
-   ./scripts/configure.sh  # Interactive configuration wizard
-   ```
-   
-   **Or manually**:
-   ```bash
-   cp env.example .env
-   # Edit .env with your specific values
+   ./scripts/install-links.sh
+   # Make sure ~/.local/bin is in your PATH
    ```
 
-3. **Install dependencies**:
+3. **Run setup**:
    ```bash
-   ./scripts/setup.sh
+   bldr-setup
    ```
 
-4. **Register GitHub Actions runner**:
+4. **Configure your environment**:
    ```bash
-   ./scripts/register-runner.sh
+   bldr-configure
    ```
 
-5. **Start the runner**:
+5. **Register the runner**:
    ```bash
-   ./scripts/start-runner.sh
+   bldr-register
+   ```
+
+6. **Uninstall (optional)**:
+   ```bash
+   bldr-uninstall
    ```
 
 ## Directory Structure
@@ -121,15 +102,15 @@ bldr/
 
 ## Installation Scripts
 
-### GitBash Script (`install.sh`)
-A comprehensive installation script for Windows users with GitBash, Linux, and macOS users.
+### Shell Script (`install.sh`)
+A comprehensive installation script for Linux and macOS users.
 
 **Features:**
 - One-command installation
 - Automatic repository download
 - Environment configuration setup
 - Prerequisites checking
-- Cross-platform compatibility
+- Cross-platform compatibility (Linux/macOS)
 
 **Usage:**
 ```bash
@@ -141,27 +122,6 @@ curl -sSL https://raw.githubusercontent.com/mikemainguy/bldr/main/install.sh | b
 
 # Show help
 curl -sSL https://raw.githubusercontent.com/mikemainguy/bldr/main/install.sh | bash -s -- --help
-```
-
-### PowerShell Script (`install.ps1`)
-A PowerShell installation script for Windows users who prefer PowerShell.
-
-**Features:**
-- Native PowerShell implementation
-- Windows-specific optimizations
-- Execution policy handling
-- Error handling and logging
-
-**Usage:**
-```powershell
-# Install in default location
-irm https://raw.githubusercontent.com/mikemainguy/bldr/main/install.ps1 | iex
-
-# Install in custom location
-irm https://raw.githubusercontent.com/mikemainguy/bldr/main/install.ps1 | iex -ArgumentList "C:\github-runner"
-
-# Show help
-.\install.ps1 -Help
 ```
 
 ## Configuration
