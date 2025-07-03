@@ -92,12 +92,11 @@ download_runner() {
     # Construct download URL for Linux x64
     DOWNLOAD_URL="https://github.com/actions/runner/releases/download/${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz"
     log "Download URL: $DOWNLOAD_URL"
-    # Get official SHA-256 hash for this version
-    HASH_URL="https://github.com/actions/runner/releases/download/${RUNNER_VERSION}/sha256sum.txt"
-    log "Fetching official SHA-256 checksums from $HASH_URL"
-    SHA256_EXPECTED=$(curl -sL "$HASH_URL" | grep "actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz" | awk '{print $1}')
+    # Fetch release notes and extract SHA-256 hash
+    RELEASE_BODY=$(curl -s "https://api.github.com/repos/actions/runner/releases/tags/${RUNNER_VERSION}" | jq -r .body)
+    SHA256_EXPECTED=$(echo "$RELEASE_BODY" | grep "actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz" | awk '{print $2}')
     if [[ -z "$SHA256_EXPECTED" ]]; then
-        error "Could not fetch official SHA-256 hash for version $RUNNER_VERSION. Aborting download."
+        error "Could not extract SHA-256 hash for version $RUNNER_VERSION from release notes. Aborting download."
     fi
     log "Expected SHA-256: $SHA256_EXPECTED"
     # Create runner directory
