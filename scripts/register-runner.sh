@@ -80,22 +80,24 @@ fetch_registration_token() {
 
 # Download runner
 download_runner() {
-    log "Downloading GitHub Actions runner ..."
-    # Get latest runner version using gh CLI
-    if ! command -v gh &> /dev/null; then
-        error "GitHub CLI (gh) is not installed. Please install it and run 'gh auth login' first."
-    fi
-    log "Getting latest runner version..."
-    RUNNER_VERSION=$(gh release view --repo actions/runner --json tagName -q .tagName)
+    log "Downloading GitHub Actions runner..."
+    # Get latest runner version using GitHub API
+    RUNNER_VERSION=$(curl -s https://api.github.com/repos/actions/runner/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
     log "Latest runner version: $RUNNER_VERSION"
-    # Get download URL for Linux x64
-    DOWNLOAD_URL=$(gh release view $RUNNER_VERSION --repo actions/runner --json assets -q '.assets[].url' | grep 'linux-x64' | head -n1)
-    if [[ -z "$DOWNLOAD_URL" ]]; then
-        error "Failed to get download URL for runner version $RUNNER_VERSION."
-    fi
+    # Construct download URL for Linux x64
+    DOWNLOAD_URL="https://github.com/actions/runner/releases/download/${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz"
     log "Download URL: $DOWNLOAD_URL"
+    # Get official SHA-256 hash for this version
+    HASH_URL="https://github.com/actions/runner/releases/download/${RUNNER_VERSION}/sha256sum.txt"
+    log "Fetching official SHA-256 checksums from $HASH_URL"
+    SHA256_EXPECTED=$(curl -sL "$HASH_URL" | grep "actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz" | awk '{print $1}')
+    if [[ -z "$SHA256_EXPECTED" ]]; then
+        error "Could not fetch official SHA-256 hash for version $RUNNER_VERSION. Aborting download."
+    fi
+    log "Expected SHA-256: $SHA256_EXPECTED"
     # Create runner directory
     sudo -u github-runner mkdir -p /home/github-runner/actions-runner
+    cd /home/github-runner/actions-runner
     # Download runner
     sudo -u github-runner curl -L -o actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz "$DOWNLOAD_URL"
     # Check if the file is a valid gzip archive
@@ -104,6 +106,15 @@ download_runner() {
         sudo -u github-runner head actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz
         error "Runner download failed."
     fi
+    # Validate SHA-256 hash
+    SHA256_ACTUAL=$(sha256sum actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz | awk '{print $1}')
+    if [[ "$SHA256_ACTUAL" != "$SHA256_EXPECTED" ]]; then
+        echo "${RED}ERROR: SHA-256 hash mismatch for downloaded runner!${NC}"
+        echo "Expected: $SHA256_EXPECTED"
+        echo "Actual:   $SHA256_ACTUAL"
+        error "The downloaded runner file is corrupt or has been tampered with. Aborting."
+    fi
+    log "SHA-256 hash validated successfully."
     # Extract runner
     sudo -u github-runner tar xzf ./actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz
     # Clean up
