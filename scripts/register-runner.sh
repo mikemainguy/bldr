@@ -132,9 +132,9 @@ download_runner() {
     log "Expected SHA-256: $SHA256_EXPECTED"
     # Create runner directory
     sudo -u github-runner mkdir -p /home/github-runner/actions-runner
-    cd /home/github-runner/actions-runner
+    
     # Download runner
-    sudo -u github-runner curl -L -o actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz "$DOWNLOAD_URL"
+    sudo -u github-runner curl -L -O  "$DOWNLOAD_URL"
     # Check if the file is a valid gzip archive
     if ! sudo -u github-runner file actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz | grep -q 'gzip compressed data'; then
         echo "Download failed or file is not a valid archive. Contents:"

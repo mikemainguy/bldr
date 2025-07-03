@@ -22,21 +22,6 @@ This document outlines a comprehensive plan for implementing a GitHub Actions se
 2. **Docker Engine**: Containerization platform
 3. **cAdvisor**: Container metrics
 
-### Network Architecture
-```
-Internet
-    │
-    ├── Nginx (80/443)
-    │   ├── GitHub Runner Dashboard
-    │   ├── Grafana (3000)
-    │   └── Application Endpoints
-    │
-    ├── SSH (22)
-    └── Monitoring Ports
-        ├── Node Exporter (9100)
-        └── cAdvisor (8080)
-```
-
 ## Implementation Phases
 
 ### Phase 1: Infrastructure Setup (Week 1)
