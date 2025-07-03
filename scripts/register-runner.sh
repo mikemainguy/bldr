@@ -106,7 +106,7 @@ download_runner() {
     log "Download URL: $DOWNLOAD_URL"
     # Fetch release notes and extract SHA-256 hash
     RELEASE_BODY=$(curl -s "https://api.github.com/repos/actions/runner/releases/tags/${RUNNER_VERSION}" | jq -r .body)
-    SHA256_EXPECTED=$(echo "$RELEASE_BODY" | grep "actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz" | awk '{print $2}')
+    SHA256_EXPECTED=$(echo "$RELEASE_BODY" | grep -A1 "actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz" | grep -o '[a-f0-9]\{64\}' | head -1)
     if [[ -z "$SHA256_EXPECTED" ]]; then
         error "Could not extract SHA-256 hash for version $RUNNER_VERSION from release notes. Aborting download."
     fi
