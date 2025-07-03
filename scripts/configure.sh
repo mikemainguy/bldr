@@ -1,9 +1,6 @@
 #!/bin/bash
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/logging.sh"
-
-# Always operate from the bldr project root, regardless of where called from
+# Robustly resolve the directory of the actual script, even if called via symlink
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do
   DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
@@ -11,6 +8,9 @@ while [ -h "$SOURCE" ]; do
   [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
 done
 SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+source "$SCRIPT_DIR/logging.sh"
+
+# Always operate from the bldr project root, regardless of where called from
 cd "$SCRIPT_DIR/.."
 
 # GitHub Actions Runner Configuration Script
@@ -338,7 +338,7 @@ get_version() {
 show_version() {
     local version=$(get_version)
     echo "GitHub Actions Runner Configuration Script v$version"
-    echo "Copyright (c) 2024 Michael Mainguy"
+    echo "Copyright (c) 2025 Michael Mainguy"
     echo "License: MIT"
 }
 
