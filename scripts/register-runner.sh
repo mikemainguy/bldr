@@ -80,11 +80,12 @@ fetch_registration_token() {
 
 # Download runner
 download_runner() {
-    log "Downloading GitHub Actions runner..."
+    log "Downloading GitHub Actions runner ..."
     # Get latest runner version using gh CLI
     if ! command -v gh &> /dev/null; then
         error "GitHub CLI (gh) is not installed. Please install it and run 'gh auth login' first."
     fi
+    log "Getting latest runner version..."
     RUNNER_VERSION=$(gh release view --repo actions/runner --json tagName -q .tagName)
     log "Latest runner version: $RUNNER_VERSION"
     # Get download URL for Linux x64
@@ -95,7 +96,6 @@ download_runner() {
     log "Download URL: $DOWNLOAD_URL"
     # Create runner directory
     sudo -u github-runner mkdir -p /home/github-runner/actions-runner
-    cd /home/github-runner/actions-runner
     # Download runner
     sudo -u github-runner curl -L -o actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz "$DOWNLOAD_URL"
     # Check if the file is a valid gzip archive
