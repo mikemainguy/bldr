@@ -170,7 +170,7 @@ configure_github() {
         echo ""
         
         if [[ -f "scripts/github-token.sh" ]]; then
-            generated_token=$(./scripts/github-token.sh --name "bldr-runner-$(hostname)" --scopes "repo,admin:org,workflow" --expiry "90d")
+            generated_token=$(./scripts/github-token.sh --name "bldr-runner-$(hostname)" --scopes "repo,admin:org,workflow" --expiry "90d" | grep -Eo 'ghp_[A-Za-z0-9_]+' || grep -Eo '([a-f0-9]{40})')
             if [[ $? -eq 0 ]] && [[ -n "$generated_token" ]]; then
                 GITHUB_TOKEN="$generated_token"
                 echo -e "${GREEN}✅ Token generated automatically!${NC}"
