@@ -1,5 +1,15 @@
 #!/bin/bash
 
+# Always operate from the bldr project root, regardless of where called from
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+cd "$SCRIPT_DIR/.."
+
 # GitHub Actions Runner Configuration Script
 # Interactive setup for environment variables
 
@@ -502,12 +512,6 @@ show_summary() {
 # Main configuration function
 main() {
     show_banner
-    
-    # Check if we're in the right directory
-    if [[ ! -f "env.example" ]] && [[ ! -f ".env" ]]; then
-        error "Please run this script from the bldr directory (where env.example is located)"
-        exit 1
-    fi
     
     info "Starting interactive configuration..."
     echo ""
