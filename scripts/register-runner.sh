@@ -71,24 +71,33 @@ fetch_registration_token() {
 # Download runner
 download_runner() {
     log "Downloading GitHub Actions runner..."
-    
-    # Get latest runner version
-    RUNNER_VERSION=$(curl -s https://api.github.com/repos/actions/runner/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+    # Get latest runner version using gh CLI
+    if ! command -v gh &> /dev/null; then
+        error "GitHub CLI (gh) is not installed. Please install it and run 'gh auth login' first."
+    fi
+    RUNNER_VERSION=$(gh release view --repo actions/runner --json tagName -q .tagName)
     log "Latest runner version: $RUNNER_VERSION"
-    
+    # Get download URL for Linux x64
+    DOWNLOAD_URL=$(gh release view $RUNNER_VERSION --repo actions/runner --json assets -q '.assets[].url' | grep 'linux-x64' | head -n1)
+    if [[ -z "$DOWNLOAD_URL" ]]; then
+        error "Failed to get download URL for runner version $RUNNER_VERSION."
+    fi
+    log "Download URL: $DOWNLOAD_URL"
     # Create runner directory
     sudo -u github-runner mkdir -p /home/github-runner/actions-runner
     cd /home/github-runner/actions-runner
-    
     # Download runner
-    sudo -u github-runner curl -o actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz -L https://github.com/actions/runner/releases/download/${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz
-    
+    sudo -u github-runner curl -L -o actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz "$DOWNLOAD_URL"
+    # Check if the file is a valid gzip archive
+    if ! sudo -u github-runner file actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz | grep -q 'gzip compressed data'; then
+        echo "Download failed or file is not a valid archive. Contents:"
+        sudo -u github-runner head actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz
+        error "Runner download failed."
+    fi
     # Extract runner
     sudo -u github-runner tar xzf ./actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz
-    
     # Clean up
     sudo -u github-runner rm actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz
-    
     log "Runner downloaded and extracted successfully."
 }
 
