@@ -15,6 +15,12 @@ cd "$SCRIPT_DIR/.."
 
 set -e
 
+# Check for sudo privileges
+if ! sudo -n true 2>/dev/null; then
+    echo -e "${RED}[$(date +'%Y-%m-%d %H:%M:%S')] ERROR: This script requires sudo privileges. Please ensure your user can run sudo commands without a password prompt.${NC}"
+    exit 1
+fi
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -233,6 +239,8 @@ show_summary() {
     echo "  Runner Name: $RUNNER_NAME"
     echo "  Labels: $RUNNER_LABELS"
     echo ""
+    echo -e "${YELLOW}Note:${NC} The runner user (default: github-runner) will be created during setup. Please ensure you run ./scripts/setup.sh with sudo privileges."
+    echo ""
 }
 
 # Main configuration function
@@ -286,7 +294,7 @@ main() {
     info "Next steps:"
     echo "  1. Review the generated .env file"
     echo "  2. Transfer files to your Ubuntu server"
-    echo "  3. Run: ./scripts/setup.sh"
+    echo "  3. Run: sudo ./scripts/setup.sh   # This will create the runner user (default: github-runner)"
     echo "  4. Run: ./scripts/register-runner.sh"
     echo "  5. Run: ./scripts/start-runner.sh"
     echo ""
