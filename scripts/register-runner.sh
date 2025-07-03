@@ -142,10 +142,11 @@ download_runner() {
     sudo mv actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz /home/github-runner/actions-runner/
     sudo chown github-runner:github-runner /home/github-runner/actions-runner/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz
     # Check if the file is a valid gzip archive
-    if ! sudo -u github-runner file actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz | grep -q 'gzip compressed data'; then
-        echo "Download failed or file is not a valid archive. Contents:"
-        sudo -u github-runner head actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz
-        error "Runner download failed."
+    log "Validating downloaded file..."
+    if ! sudo -u github-runner tar -tzf actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz > /dev/null 2>&1; then
+        echo "Download failed or file is not a valid gzip archive. Contents:"
+        sudo -u github-runner head -c 100 actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz
+        error "Runner download failed - file is not a valid gzip archive."
     fi
     # Validate SHA-256 hash
     SHA256_ACTUAL=$(sha256sum actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz | awk '{print $1}')
