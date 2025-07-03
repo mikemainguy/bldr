@@ -34,7 +34,7 @@ This project provides a complete setup for running GitHub Actions self-hosted ru
 - Node.js 18+ and npm
 - Git
 - SSH access to production server
-- GitHub Personal Access Token with repo permissions
+- GitHub CLI (gh) authenticated (run 'gh auth login')
 
 ## Quick Start
 
@@ -176,7 +176,7 @@ The easiest way to configure your environment is using the interactive configura
 
 This script will:
 - Guide you through all required settings
-- Validate input formats (GitHub tokens, emails, domains, etc.)
+- Validate input formats (emails, domains, etc.)
 - Provide helpful tips and examples
 - Generate a properly formatted `.env` file
 - Show a summary of your configuration before saving
@@ -225,7 +225,7 @@ The runner can be configured for:
 
 Common issues and solutions:
 
-1. **Runner not connecting**: Check network connectivity and GitHub token
+1. **Runner not connecting**: Check network connectivity and GitHub CLI authentication
 2. **Deployment failures**: Verify SSH access and production server status
 3. **SSL certificate issues**: Check Let's Encrypt configuration
 4. **Resource exhaustion**: Monitor system resources and adjust limits

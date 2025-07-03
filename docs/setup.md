@@ -9,7 +9,7 @@ Before starting the setup, ensure you have:
 - Ubuntu 20.04 LTS or later
 - Sudo privileges
 - Internet connectivity
-- GitHub Personal Access Token with repo permissions
+- GitHub CLI (gh) authenticated (run 'gh auth login')
 - Domain name (optional, for SSL certificates)
 - Production server with SSH access
 
@@ -133,7 +133,6 @@ nano .env
 
 Key variables to configure:
 
-- `GITHUB_TOKEN`: Your GitHub Personal Access Token
 - `GITHUB_REPOSITORY`: Target repository (owner/repo)
 - `PRODUCTION_HOST`: Production server hostname/IP
 - `PRODUCTION_USER`: SSH user for production server
@@ -210,7 +209,7 @@ docker-compose ps
 sudo systemctl status actions.runner.*
 
 # Check if runner is connected
-curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runners"
+gh api repos/$GITHUB_REPOSITORY/actions/runners
 ```
 
 ## Step 9: Configure GitHub Repository
@@ -285,9 +284,7 @@ git push -u origin main
 ### Common Issues
 
 1. **Runner not connecting to GitHub**
-   - Check GitHub token permissions
-   - Verify repository access
-   - Check network connectivity
+   - Check GitHub CLI authentication (run 'gh auth status')
 
 2. **Docker permission errors**
    - Ensure user is in docker group

@@ -92,11 +92,6 @@ Internet
 - [ ] Volume and network setup
 - [ ] Service dependencies configuration
 
-#### 2.3 Monitoring Stack
-- [ ] Prometheus installation and configuration
-- [ ] Grafana setup with dashboards
-- [ ] Node Exporter configuration
-- [ ] cAdvisor setup
 
 ### Phase 3: Deployment Pipeline (Week 3)
 
@@ -226,7 +221,6 @@ Key configuration variables in `.env`:
 
 ```bash
 # GitHub Configuration
-GITHUB_TOKEN=your_github_personal_access_token
 GITHUB_REPOSITORY=owner/repository-name
 RUNNER_LABELS=ubuntu,nodejs,self-hosted
 
